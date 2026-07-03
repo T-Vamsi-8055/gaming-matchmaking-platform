@@ -12,7 +12,7 @@ This platform is a full-stack application featuring a high-performance frontend 
 ```
 
 # 🛠️ Tech Stack Used
-Frontend: React, Vite, ESLint
-Backend: Node.js, Express
-Tooling: Git & GitHub
+- Frontend: React, Vite, ESLint, Tailwind CSS
+- Backend: Node.js, Express
+- Tooling: Git & GitHub
 
