@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 export default function USERLOGANDREG() {
-  const [isUSERLOGANDREG, setIsUSERLOGANDREG] = useState(true);
+  const [isUserLogin, setIsUserLogin] = useState(true);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex font-sans select-none overflow-hidden">
@@ -22,31 +22,32 @@ export default function USERLOGANDREG() {
         {/* Form Container */}
         <div className="w-full max-w-md mx-auto my-auto py-8">
           <h2 className="text-3xl font-extrabold tracking-tight mb-2 uppercase">
-            {isUSERLOGANDREG ? 'Welcome Back' : 'Create Your Account'}
+            {isUserLogin ? 'Welcome Back' : 'Create Your Account'}
           </h2>
           <p className="text-sm text-zinc-400 mb-8">
-            {isUSERLOGANDREG ? 'The queue is waiting. Ready up.' : 'Join thousands of players looking for a squad.'}
+            {isUserLogin ? 'The queue is waiting. Ready up.' : 'Join thousands of players looking for a squad.'}
           </p>
 
           {/* Tab Switcher */}
           <div className="grid grid-cols-2 bg-zinc-900 p-1 rounded-lg mb-6 border border-zinc-800">
             <button 
-              onClick={() => setIsUSERLOGANDREG(true)}
-              className={`py-2 text-sm font-semibold rounded-md transition-all ${isUSERLOGANDREG ? 'bg-zinc-800 text-cyan-400 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
+              onClick={() => setIsUserLogin(true)}
+              className={`py-2 text-sm font-semibold rounded-md transition-all ${isUserLogin ? 'bg-zinc-800 text-cyan-400 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
             >
               Sign In
             </button>
             <button 
-              onClick={() => setIsUSERLOGANDREG(false)}
-              className={`py-2 text-sm font-semibold rounded-md transition-all ${!isUSERLOGANDREG ? 'bg-zinc-800 text-cyan-400 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
+              onClick={() => setIsUserLogin(false)}
+              className={`py-2 text-sm font-semibold rounded-md transition-all ${!isUserLogin ? 'bg-zinc-800 text-cyan-400 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
             >
               Register
             </button>
           </div>
 
           {/* Form */}
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            {!isUSERLOGANDREG && (
+          <form onSubmit={(e) => e.preventDefault()}>
+            <div className="space-y-4 min-h-[240px]">
+            {!isUserLogin && (
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Username</label>
                 <input 
@@ -56,6 +57,7 @@ export default function USERLOGANDREG() {
                 />
               </div>
             )}
+            
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Email Address</label>
@@ -69,7 +71,7 @@ export default function USERLOGANDREG() {
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">Password</label>
-                {isUSERLOGANDREG && <a href="#" className="text-xs text-cyan-500 hover:underline">Forgot?</a>}
+                {isUserLogin && <a href="#" className="text-xs text-cyan-500 hover:underline">Forgot?</a>}
               </div>
               <input 
                 type="password" 
@@ -77,11 +79,12 @@ export default function USERLOGANDREG() {
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-zinc-600 transition-colors"
               />
             </div>
-
+            </div>
             {/* Submit Button */}
             <button className="w-full mt-2 relative group overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold uppercase tracking-wider text-sm py-3.5 rounded-md hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:shadow-[0_0_25px_rgba(34,211,238,0.4)] active:scale-[0.99]">
-              {isUSERLOGANDREG ? 'Launch Dashboard' : 'Create Profile'}
+              {isUserLogin ? 'Launch Dashboard' : 'Create Profile'}
             </button>
+            
           </form>
         </div>
 
