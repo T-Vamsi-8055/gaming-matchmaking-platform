@@ -1,20 +1,62 @@
-import React, { useState } from 'react';
-import { createRoot } from 'react-dom/client';
-import './isLogin.css';
+import React, { useState } from "react";
+import "./isLogin.css";
 
-const API_PORT = 5000; 
+const API_PORT = 3000;
 
 export default function USERLOGANDREG() {
-  const [isUSERLOGANDREG, setIsUSERLOGANDREG] = useState(true);
+  const [isLogin, setIsLogin] = useState(true);
+
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // console.log(
+    //   isLogin ? "Login Data:" : "Register Data:",
+    //   formData
+    // );
+
+    // Example API call
+    
+    const endpoint = isLogin ? "/login" : "/register";
+
+    try {
+      const response = await fetch(`http://localhost:${API_PORT}/api/auth${endpoint}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      console.log(data);
+    } catch (err) {
+      console.error(err);
+    }
+    
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex font-sans select-none overflow-hidden">
-      {/* LEFT SIDE: Authentication Form Panel */}
+      {/* LEFT SIDE */}
       <div className="w-full lg:w-[45%] flex flex-col justify-between p-8 sm:p-12 md:p-20 bg-zinc-950 border-r border-zinc-800/50 z-10">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded bg-gradient-to-tr from-violet-600 to-cyan-400 flex items-center justify-center font-black text-black text-xs tracking-wider">
             DEV
           </div>
+
           <span className="text-xl font-black tracking-wider uppercase bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
             GAMING MATCHMAKING PLATFORM
           </span>
@@ -22,34 +64,53 @@ export default function USERLOGANDREG() {
 
         <div className="w-full max-w-md mx-auto my-auto py-8">
           <h2 className="text-3xl font-extrabold tracking-tight mb-2 uppercase">
-            {isUSERLOGANDREG ? 'Welcome Back' : 'Create Your Account'}
+            {isLogin ? "Welcome Back" : "Create Your Account"}
           </h2>
+
           <p className="text-sm text-zinc-400 mb-8">
-            {isUSERLOGANDREG ? 'The queue is waiting. Ready up.' : 'Join thousands of players looking for a squad.'}
+            {isLogin
+              ? "The queue is waiting. Ready up."
+              : "Join thousands of players looking for a squad."}
           </p>
 
+          {/* Toggle */}
           <div className="grid grid-cols-2 bg-zinc-900 p-1 rounded-lg mb-6 border border-zinc-800">
-            <button 
-              onClick={() => setIsUSERLOGANDREG(true)}
-              className={`py-2 text-sm font-semibold rounded-md transition-all ${isUSERLOGANDREG ? 'bg-zinc-800 text-cyan-400 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
+            <button
+              type="button"
+              onClick={() => setIsLogin(true)}
+              className={`py-2 text-sm font-semibold rounded-md transition-all ${
+                isLogin
+                  ? "bg-zinc-800 text-cyan-400 shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
             >
               Sign In
             </button>
-            <button 
-              onClick={() => setIsUSERLOGANDREG(false)}
-              className={`py-2 text-sm font-semibold rounded-md transition-all ${!isUSERLOGANDREG ? 'bg-zinc-800 text-cyan-400 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
+
+            <button
+              type="button"
+              onClick={() => setIsLogin(false)}
+              className={`py-2 text-sm font-semibold rounded-md transition-all ${
+                !isLogin
+                  ? "bg-zinc-800 text-cyan-400 shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
             >
               Register
             </button>
           </div>
 
           {/* Form */}
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            {!isUSERLOGANDREG && (
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="space-y-4 h-60">
+            {!isLogin && (
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Username</label>
-                <input 
-                  type="text" 
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                  Username
+                </label>
+
+                <input
+                  type="text"
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
@@ -59,12 +120,14 @@ export default function USERLOGANDREG() {
                 />
               </div>
             )}
-            
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Email Address</label>
-              <input 
-                type="email" 
+              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                Email Address
+              </label>
+
+              <input
+                type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
@@ -76,11 +139,22 @@ export default function USERLOGANDREG() {
 
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">Password</label>
-                {isUSERLOGANDREG && <a href="#" className="text-xs text-cyan-500 hover:underline">Forgot?</a>}
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  Password
+                </label>
+
+                {isLogin && (
+                  <a
+                    href="#"
+                    className="text-xs text-cyan-500 hover:underline"
+                  >
+                    Forgot?
+                  </a>
+                )}
               </div>
-              <input 
-                type="password" 
+
+              <input
+                type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
@@ -89,12 +163,13 @@ export default function USERLOGANDREG() {
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-zinc-600 transition-colors"
               />
             </div>
-
-            {/* Submit Button */}
-            <button className="w-full mt-2 relative group overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold uppercase tracking-wider text-sm py-3.5 rounded-md hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:shadow-[0_0_25px_rgba(34,211,238,0.4)] active:scale-[0.99]">
-              {isUSERLOGANDREG ? 'Launch Dashboard' : 'Create Profile'}
+              </div>
+            <button
+              type="submit"
+              className="w-full mt-2 relative group overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold uppercase tracking-wider text-sm py-3.5 rounded-md hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:shadow-[0_0_25px_rgba(34,211,238,0.4)] active:scale-[0.99]"
+            >
+              {isLogin ? "Launch Dashboard" : "Create Profile"}
             </button>
-            
           </form>
         </div>
 
@@ -103,21 +178,28 @@ export default function USERLOGANDREG() {
         </div>
       </div>
 
-      {/* RIGHT SIDE: Decorative Visual Panel */}
+      {/* RIGHT SIDE */}
       <div className="hidden lg:flex flex-1 relative items-center justify-center bg-zinc-900">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20"></div>
+
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl animate-pulse"></div>
+
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
 
         <div className="relative text-center max-w-md p-6 z-10">
           <div className="inline-block border border-cyan-500/30 bg-cyan-950/20 text-cyan-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4">
             System Online
           </div>
+
           <h1 className="text-4xl font-black tracking-tight leading-none mb-4 uppercase">
-           WILL ADD QUOTE <br/> HERE LATER
+            WILL ADD QUOTE
+            <br />
+            HERE LATER
           </h1>
+
           <p className="text-zinc-400 text-sm">
-            Filter players by rank, communication style, and toxic-free karma ratings. Welcome to fairer matchmaking.
+            Filter players by rank, communication style, and toxic-free karma
+            ratings. Welcome to fairer matchmaking.
           </p>
         </div>
       </div>

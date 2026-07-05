@@ -1,16 +1,29 @@
 import bcrypt from "bcrypt";
-import pool from "../config/db"
+import {pool} from "../config/db.js"
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
 
 async function handleAuthLogin(req,res){
     const {email, password} =req.body;
     try{
-    const ans=pool.query("select * from users where email=$1",[email]);
+    const ans= await pool.query("select * from users where email=$1",[email]);
+    const user=ans.rows[0];
+    if (ans.rows.length === 0) {
+    return res.status(401).json({
+        message: "Invalid email or password"
+    });
+    }
 
-    if(!ans.rows[0]) res.send("Invalid email or password.");
+    const isMatch = await bcrypt.compare(
+        password,
+        ans.rows[0].password_hash
+    );
 
-    await bcrypt.compare(password,ans.rows[0].password_hash);
+    if (!isMatch) {
+        return res.status(401).json({
+            message: "Invalid email or password"
+        });
+    }
     const token = jwt.sign(
     {
         id: user.id,
@@ -21,9 +34,16 @@ async function handleAuthLogin(req,res){
         expiresIn: "7d"
     }
     );
-    req.cookie("token",token);
-    res.redirect("/");
-    
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: false,      // true in production with HTTPS
+        sameSite: "lax"
+    });
+    res.status(200).json({
+        message: "Login successful",
+        token
+    });
+
     }catch(err){
         console.log(err);
     }
@@ -36,8 +56,8 @@ async function handleAuthRegister(req,res){
         res.send("User already exists");
     }else{
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newuser=pool.query("insert into users (username,email,password_hash,created_at,updated_at) values ($1,$2,$3)",[username,email,hashedPassword]);
-        res.status(201).send("User created");
+        const newuser=await pool.query("insert into users (username,email,password_hash) values ($1,$2,$3)",[username,email,hashedPassword]);
+        res.status(201).json({message:"User created"});
     }
     }catch(err){
         console.log(err);
