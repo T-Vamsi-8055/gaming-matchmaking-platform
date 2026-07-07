@@ -28,13 +28,12 @@ export default function USERLOGANDREG() {
     // );
 
     // Example API call
-
+    
     const endpoint = isLogin ? "/login" : "/register";
 
     try {
       const response = await fetch(`http://localhost:${API_PORT}/api/auth${endpoint}`, {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -46,7 +45,7 @@ export default function USERLOGANDREG() {
     } catch (err) {
       console.error(err);
     }
-
+    
   };
 
   return (
@@ -79,10 +78,11 @@ export default function USERLOGANDREG() {
             <button
               type="button"
               onClick={() => setIsLogin(true)}
-              className={`py-2 text-sm font-semibold rounded-md transition-all ${isLogin
-                ? "bg-zinc-800 text-cyan-400 shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200"
-                }`}
+              className={`py-2 text-sm font-semibold rounded-md transition-all ${
+                isLogin
+                  ? "bg-zinc-800 text-cyan-400 shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
             >
               Sign In
             </button>
@@ -90,10 +90,11 @@ export default function USERLOGANDREG() {
             <button
               type="button"
               onClick={() => setIsLogin(false)}
-              className={`py-2 text-sm font-semibold rounded-md transition-all ${!isLogin
-                ? "bg-zinc-800 text-cyan-400 shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200"
-                }`}
+              className={`py-2 text-sm font-semibold rounded-md transition-all ${
+                !isLogin
+                  ? "bg-zinc-800 text-cyan-400 shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
             >
               Register
             </button>
@@ -102,67 +103,67 @@ export default function USERLOGANDREG() {
           {/* Form */}
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-4 h-60">
-              {!isLogin && (
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                    Username
-                  </label>
-
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    placeholder="Ninja_X"
-                    required={!isLogin}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-zinc-600 transition-colors"
-                  />
-                </div>
-              )}
-
+            {!isLogin && (
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                  Email Address
+                  Username
                 </label>
 
                 <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                  type="text"
+                  name="username"
+                  value={formData.username}
                   onChange={handleChange}
-                  placeholder="player@gmail.com"
-                  required
+                  placeholder="Ninja_X"
+                  required={!isLogin}
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-zinc-600 transition-colors"
                 />
               </div>
+            )}
 
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
-                    Password
-                  </label>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                Email Address
+              </label>
 
-                  {isLogin && (
-                    <a
-                      href="#"
-                      className="text-xs text-cyan-500 hover:underline"
-                    >
-                      Forgot?
-                    </a>
-                  )}
-                </div>
-
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  required
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-zinc-600 transition-colors"
-                />
-              </div>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="player@gmail.com"
+                required
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-zinc-600 transition-colors"
+              />
             </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  Password
+                </label>
+
+                {isLogin && (
+                  <a
+                    href="#"
+                    className="text-xs text-cyan-500 hover:underline"
+                  >
+                    Forgot?
+                  </a>
+                )}
+              </div>
+
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                required
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-zinc-600 transition-colors"
+              />
+            </div>
+              </div>
             <button
               type="submit"
               className="w-full mt-2 relative group overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold uppercase tracking-wider text-sm py-3.5 rounded-md hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:shadow-[0_0_25px_rgba(34,211,238,0.4)] active:scale-[0.99]"
