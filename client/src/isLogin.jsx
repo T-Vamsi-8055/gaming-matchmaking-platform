@@ -34,6 +34,7 @@ export default function USERLOGANDREG() {
     try {
       const response = await fetch(`http://localhost:${API_PORT}/api/auth${endpoint}`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
