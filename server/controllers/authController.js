@@ -40,8 +40,7 @@ async function handleAuthLogin(req, res) {
             sameSite: "lax"
         });
         res.status(200).json({
-            message: "Login successful",
-            token
+            message: "Login successful"
         });
 
     } catch (err) {
