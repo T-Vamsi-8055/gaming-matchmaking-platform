@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import "./isLogin.css";
+import {useNavigate} from 'react-router-dom';
 
 const API_PORT = 3000;
 
 export default function USERLOGANDREG() {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
 
   const [formData, setFormData] = useState({
@@ -42,7 +44,10 @@ export default function USERLOGANDREG() {
       });
 
       const data = await response.json();
-      console.log(data);
+      //console.log(data);
+      if(response.ok){
+        navigate("/");
+      }
     } catch (err) {
       console.error(err);
     }
