@@ -6,6 +6,8 @@ const API_PORT = 3000
 const home = () => {
   const navigate = useNavigate();
 
+{/* States for Segment1: QUICK MATCHMAKING */}
+
   // Authentication & Profile States
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,8 +18,9 @@ const home = () => {
   const [game, setGame] = useState('');
   const [region, setRegion] = useState('');
   const [roomCode, setRoomCode] = useState('');
-
-// Mock Data for Games
+  
+{/* States for Segment2: Game Discovery Grid */}
+  // Mock Data for Games
   const gamesData = [
     { id: 1, title: 'Valorant', genre: 'FPS', platform: 'PC', activePlayers: 14205},
     { id: 2, title: 'Counter-Strike 2', genre: 'FPS', platform: 'PC', activePlayers: 28410 },
@@ -36,6 +39,44 @@ const home = () => {
     const platformMatch = selectedPlatform === 'All' || game.platform === selectedPlatform;
     return genreMatch && platformMatch;
   });
+
+{/* States for Segment3: Tournament Panel */}
+  // Mock Data for Tournaments & Scrims
+  const tournamentsData = [
+    {
+      id: 1,
+      title: "Valorant Radiant Clash",
+      type: "Championship Tournament",
+      joinedTeams: 24,
+      maxTeams: 32,
+      status: "Registering",
+      game: "Valorant",
+      reward: "$5,000 Prize Pool",
+      actionText: "Register Team"
+    },
+    {
+      id: 2,
+      title: "CS2 EU Masters Qualifier",
+      type: "Pro Scrim / Bracket",
+      joinedTeams: 16,
+      maxTeams: 16,
+      status: "Live Progress",
+      game: "Counter-Strike 2",
+      reward: "Tier-1 Seed Spot",
+      actionText: "Watch Live"
+    },
+    {
+      id: 3,
+      title: "League of Legends Rift Rivalry",
+      type: "Community Cup",
+      joinedTeams: 58,
+      maxTeams: 64,
+      status: "Registering",
+      game: "League of Legends",
+      reward: "Premium Loot Drops",
+      actionText: "Register Team"
+    }
+  ];
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -103,7 +144,7 @@ const home = () => {
             WELCOME
           </div>
 
-          {/* QUICK MATCHMAKING */}
+          {/* Segment1: QUICK MATCHMAKING */}
           <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-zinc-900 to-black border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
             {/* Ambient Background Glows */}
             <div className="absolute -top-24 -left-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -132,6 +173,8 @@ const home = () => {
                       <option value="valorant">Valorant</option>
                       <option value="cs2">Counter-Strike 2</option>
                       <option value="lol">League of Legends</option>
+                      <option value="apex">Apex Legends</option>
+                      <option value="dota2">Dota 2</option>
                     </select>
                   </div>
 
@@ -201,7 +244,7 @@ const home = () => {
             </div>
           </section>
           
-          {/* Game Discovery Grid*/}
+          {/* Segment2: Game Discovery Grid*/}
           <section className="space-y-4">
             {/* Header & Filters Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-xl p-4">
@@ -280,6 +323,100 @@ const home = () => {
                   No matching games deploying parameters found.
                 </div>
               )}
+            </div>
+          </section>
+
+        {/*Segment3: Tournament Panel */}        
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold tracking-wider uppercase text-slate-100">Tournaments & Scrims</h2>
+                <p className="text-xs text-zinc-400">Join active brackets or spectate pro divisions</p>
+              </div>
+              
+              {/* Carousel Navigation Indicator Dots */}
+              <div className="flex space-x-1.5 bg-white/5 p-1.5 rounded-lg border border-white/5">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
+              </div>
+            </div>
+
+            {/* Horizontal Carousel Track Wrapper */}
+            <div className="flex gap-4 overflow-x-auto pb-3 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent snap-x snap-mandatory">
+              {tournamentsData.map((event) => {
+                const isFull = event.joinedTeams === event.maxTeams;
+                const isLive = event.status === "Live Progress";
+                const progressPercentage = (event.joinedTeams / event.maxTeams) * 100;
+
+                return (
+                  <div
+                    key={event.id}
+                    className="flex-none w-full md:w-[420px] bg-gradient-to-b from-slate-900 to-zinc-950 border border-white/10 rounded-xl p-5 snap-start relative overflow-hidden flex flex-col justify-between min-h-[190px] shadow-xl group"
+                  >
+                    {/* Event Type Accent Line Accent */}
+                    <div className={`absolute top-0 left-0 right-0 h-[2px] 
+                      ${isLive ? 'bg-magenta-500 bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-gradient-to-r from-cyan-500 to-blue-500'}`} 
+                    />
+
+                    {/* Top Row Context Details */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[11px] font-mono tracking-wider">
+                        <span className="text-zinc-400 uppercase font-medium">{event.type}</span>
+                        <span className={`px-2 py-0.5 rounded-md font-bold uppercase tracking-widest border
+                          ${isLive 
+                            ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 animate-pulse' 
+                            : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
+                          }`}
+                        >
+                          ● {event.status}
+                        </span>
+                      </div>
+                      
+                      <h3 className="text-base font-black tracking-wide text-white group-hover:text-cyan-400 transition-colors duration-200 mt-1">
+                        {event.title}
+                      </h3>
+                      <p className="text-xs font-semibold text-emerald-400 tracking-wide font-mono">
+                        🏆 {event.reward}
+                      </p>
+                    </div>
+
+                    {/* Middle Progress Track Section */}
+                    <div className="my-4 space-y-1.5">
+                      <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
+                        <span>Slots Filled</span>
+                        <span className="font-bold text-slate-200">
+                          {event.joinedTeams} / {event.maxTeams} Teams
+                        </span>
+                      </div>
+                      <div className="w-full bg-zinc-900 border border-white/5 h-2 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full transition-all duration-500
+                            ${isLive ? 'bg-purple-500' : isFull ? 'bg-emerald-500' : 'bg-cyan-500'}`}
+                          style={{ width: `${progressPercentage}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Action Hub Row Footer */}
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-xs font-mono bg-white/5 px-2.5 py-1 rounded border border-white/5 text-zinc-300">
+                        ⚔️ {event.game}
+                      </span>
+                      
+                      <button className={`text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-1 border
+                        ${isLive 
+                          ? 'bg-purple-500 text-white border-purple-400/20 hover:bg-purple-600 shadow-[0_0_15px_rgba(168,85,247,0.3)]' 
+                          : 'bg-white/5 text-slate-200 border-white/10 hover:border-cyan-400/50 hover:text-cyan-400 hover:bg-cyan-500/5'
+                        }`}
+                      >
+                        <span>{event.actionText}</span>
+                        <span>{isLive ? '📺' : '→'}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </section>
         </main>
