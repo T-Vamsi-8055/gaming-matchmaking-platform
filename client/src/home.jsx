@@ -17,6 +17,26 @@ const home = () => {
   const [region, setRegion] = useState('');
   const [roomCode, setRoomCode] = useState('');
 
+// Mock Data for Games
+  const gamesData = [
+    { id: 1, title: 'Valorant', genre: 'FPS', platform: 'PC', activePlayers: 14205},
+    { id: 2, title: 'Counter-Strike 2', genre: 'FPS', platform: 'PC', activePlayers: 28410 },
+    { id: 3, title: 'League of Legends', genre: 'MOBA', platform: 'PC', activePlayers: 45190},
+    { id: 4, title: 'Apex Legends', genre: 'FPS', platform: 'Multi', activePlayers: 8940},
+    { id: 5, title: 'Dota 2', genre: 'MOBA', platform: 'PC', activePlayers: 12450},
+  ];
+
+  // Filtering States
+  const [selectedGenre, setSelectedGenre] = useState('All');
+  const [selectedPlatform, setSelectedPlatform] = useState('All');
+
+  // Filtered Games Logic
+  const filteredGames = gamesData.filter(game => {
+    const genreMatch = selectedGenre === 'All' || game.genre === selectedGenre;
+    const platformMatch = selectedPlatform === 'All' || game.platform === selectedPlatform;
+    return genreMatch && platformMatch;
+  });
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -178,6 +198,88 @@ const home = () => {
                 </div>
               </div>
 
+            </div>
+          </section>
+          
+          {/* Game Discovery Grid*/}
+          <section className="space-y-4">
+            {/* Header & Filters Controls */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-xl p-4">
+              <div>
+                <h2 className="text-lg font-bold tracking-wider uppercase text-slate-100">Game Discovery</h2>
+                <p className="text-xs text-zinc-400">Explore titles and check active queues</p>
+              </div>
+              
+              {/* Filter Dropdowns */}
+              <div className="flex items-center gap-2">
+                <select
+                  value={selectedGenre}
+                  onChange={(e) => setSelectedGenre(e.target.value)}
+                  className="bg-zinc-950 border border-white/10 text-xs text-slate-300 rounded-lg p-2 outline-none focus:border-cyan-400 cursor-pointer"
+                >
+                  <option value="All">All Genres</option>
+                  <option value="FPS">FPS</option>
+                  <option value="MOBA">MOBA</option>
+                </select>
+
+                <select
+                  value={selectedPlatform}
+                  onChange={(e) => setSelectedPlatform(e.target.value)}
+                  className="bg-zinc-950 border border-white/10 text-xs text-slate-300 rounded-lg p-2 outline-none focus:border-cyan-400 cursor-pointer"
+                >
+                  <option value="All">All Platforms</option>
+                  <option value="PC">PC</option>
+                  <option value="Multi">Cross-Platform</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Horizontal Sliding Card List */}
+            <div className="flex gap-4 overflow-x-auto pb-3 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent snap-x snap-mandatory">
+              {filteredGames.length > 0 ? (
+                filteredGames.map((g) => (
+                  <div
+                    key={g.id}
+                    className="group relative flex-none w-64 h-40 rounded-xl overflow-hidden border border-white/10 bg-zinc-900 snap-start transition-all duration-300 hover:scale-[1.03] hover:border-cyan-500/50 cursor-pointer shadow-lg"
+                  >
+                    {/* Card Banner Background Asset */}
+                    <div 
+                      className="absolute inset-0 bg-cover bg-center brightness-[0.4] group-hover:brightness-[0.5] transition-all duration-300 transform group-hover:scale-105"
+                      style={{ backgroundImage: `url(${g.bg})` }}
+                    />
+                    
+                    {/* Glass Surface Overlay Content */}
+                    <div className="absolute inset-0 p-4 flex flex-col justify-between z-10 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent">
+                      {/* Top Badges */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold">
+                          {g.genre}
+                        </span>
+                        <span className="text-[10px] font-mono tracking-wider text-zinc-400 uppercase bg-black/40 px-2 py-0.5 rounded border border-white/5">
+                          {g.platform}
+                        </span>
+                      </div>
+
+                      {/* Bottom Details */}
+                      <div className="space-y-1">
+                        <h3 className="font-black text-base tracking-wide text-white group-hover:text-cyan-400 transition-colors duration-200">
+                          {g.title}
+                        </h3>
+                        <div className="flex items-center space-x-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <p className="text-xs font-mono text-zinc-400">
+                            <span className="text-emerald-400 font-bold">{g.activePlayers.toLocaleString()}</span> Queueing
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="w-full text-center py-12 bg-white/5 border border-white/10 border-dashed rounded-xl text-zinc-500 text-sm">
+                  No matching games deploying parameters found.
+                </div>
+              )}
             </div>
           </section>
         </main>
