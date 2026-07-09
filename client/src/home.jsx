@@ -156,7 +156,27 @@ const home = () => {
                 )}
               </div>
 
-
+              {/* Instant Lobby Creation Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <button className="flex items-center justify-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all duration-200 p-3 rounded-xl text-sm font-semibold tracking-wide">
+                  <span>➕</span>
+                  <span>Create Public Lobby</span>
+                </button>
+                
+                <div className="flex bg-white/5 border border-white/10 focus-within:border-white/20 focus-within:ring-1 focus-within:ring-white/10 transition-all duration-200 rounded-xl overflow-hidden p-1">
+                  <input 
+                    type="text" 
+                    placeholder="Room Code" 
+                    value={roomCode}
+                    onChange={(e) => setRoomCode(e.target.value)}
+                    className="w-full bg-transparent px-3 py-2 text-sm text-slate-200 outline-none placeholder-zinc-500 min-w-0"
+                  />
+                  <button className="flex items-center justify-center space-x-1 bg-white/10 hover:bg-white/20 transition-all duration-200 px-4 py-2 rounded-lg text-sm font-semibold shrink-0 whitespace-nowrap">
+                    <span>🔒</span>
+                    <span>Private</span>
+                  </button>
+                </div>
+              </div>
 
             </div>
           </section>
