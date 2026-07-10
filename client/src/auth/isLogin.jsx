@@ -47,7 +47,7 @@ export default function USERLOGANDREG() {
       //console.log(data);
       if(response.ok){
         if(isLogin){
-           navigate("/");
+           navigate("/home");
         } else{
           navigate("/auth/verify-otp", { state: { email: formData.email } });
         }
