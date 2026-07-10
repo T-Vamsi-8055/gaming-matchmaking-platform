@@ -16,24 +16,26 @@ export default function VerifyOtp() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false); 
     const inputRefs = useRef([]);
+
+
     //Form submission handling
     const handleSubmit = (e) => {
         e.preventDefault();
         setError("");
         const finalOtp = otp.join("");
 
-        // Frontend validation check
+        // Validation check
         if (finalOtp.length < 6) {
             setError("Please fill out all 6 digits of your verification code.");
             return;
         }
 
         setLoading(true);
-        console.log(`Frontend is ready. Sending code "${finalOtp}" for email: ${email}`);
+        console.log(`Sending code "${finalOtp}" for email: ${email}`);
 
-        /* PLACEHOLDER FOR SERVER BACKEND INTEGRATION
+        {/* PLACEHOLDER FOR SERVER BACKEND INTEGRATION
          DROP THE FETCH API REQUEST HERE
-        */
+        */}
     
         setTimeout(() => {
             setLoading(false);
@@ -49,7 +51,35 @@ export default function VerifyOtp() {
         setOtp(new Array(6).fill("")); // Clear layout boxes
         if (inputRefs.current[0]) inputRefs.current[0].focus(); // Refocus first box safely
         console.log("User requested a code resend.");
-        // Server to trigger resend logic here
+        {/* Server to trigger resend logic here */}
+    };
+
+    // Countdown timer for the resend button lockout
+    useEffect(() => {
+        if (timer > 0) {
+            const interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
+            return () => clearInterval(interval);
+        }
+    }, [timer]);
+
+    //Shifts cursor forward when typing a digit
+    const handleChange = (element, index) => {
+        if (isNaN(element.value)) return false; // Block non-numbers
+
+        const newOtp = [...otp];
+        newOtp[index] = element.value;
+        setOtp(newOtp);
+
+        if (element.value !== "" && index < 5) {
+            inputRefs.current[index + 1].focus();
+        }
+    };
+
+    //Shifts cursor backward when pressing Backspace
+    const handleKeyDown = (e, index) => {
+        if (e.key === "Backspace" && !otp[index] && index > 0) {
+            inputRefs.current[index - 1].focus();
+        }
     };
 
   return (
@@ -77,7 +107,9 @@ export default function VerifyOtp() {
                 maxLength="1"
                 value={data}
                 ref={(el) => (inputRefs.current[index] = el)}
-                disabled={loading} // Changed to matching variable name: loading
+                onChange={(e) => handleChange(e.target, index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                disabled={loading}
                 style={{ width: "50px", height: "50px", textAlign: "center", fontSize: "1.5rem" }}
               />
             ))}
