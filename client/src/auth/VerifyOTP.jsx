@@ -16,9 +16,11 @@ export default function VerifyOtp() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const inputRefs = useRef([]);
-
+    
+    // Refs to control focus shifting between input boxes
+    const inputRefs = useRef([]);
+    
     //Form submission handling
-
     const handleSubmit = (e) => {
         e.preventDefault();
         setError("");
@@ -44,6 +46,15 @@ export default function VerifyOtp() {
             // On successful verification, move to profile setup:
             // navigate("");
         }, 1500);
-  };
+    };
+    
+    // Resetting the layout when requesting a new token
+    const handleResend = () => {
+        setError("");
+        setOtp(new Array(6).fill("")); // Clear layout boxes
+        inputRefs.current[0].focus(); // Refocus first box
+        console.log("User requested a code resend.");
+        // Server to trigger resend logic here
+    };
 
 }
