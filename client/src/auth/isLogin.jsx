@@ -46,7 +46,11 @@ export default function USERLOGANDREG() {
       const data = await response.json();
       //console.log(data);
       if(response.ok){
-        navigate("/");
+        if(isLogin){
+           navigate("/");
+        } else{
+          navigate("/auth/verify-otp", { state: { email: formData.email } });
+        }
       }
     } catch (err) {
       console.error(err);
