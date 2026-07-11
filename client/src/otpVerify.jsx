@@ -6,7 +6,7 @@ const API_PORT= 3000
 export default function otpVerify(){
     const [formData,setFormData]=useState(["","","","","",""])
     const [resendBtn, setResendBtn] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(10);
+    const [timeLeft, setTimeLeft] = useState(120);
     const {state} =useLocation();
     const navigate=useNavigate();
     const [errorMsg,setErrorMsg]=useState("");
@@ -54,7 +54,7 @@ useEffect(() => {
 
         }
 
-        setTimeLeft(10);
+        setTimeLeft(120);
 
         setResendBtn(false);
 
