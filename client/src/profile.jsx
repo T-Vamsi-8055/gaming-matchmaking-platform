@@ -9,6 +9,7 @@ export default function Profile({ registeredName }) {
    description: '',
    profilePic: null,
    genres: [],
+   socialLinks: { twitter: '', discord: '', twitch: '' },
   });
 
   const handleSubmit = (e) => {
@@ -26,6 +27,15 @@ export default function Profile({ registeredName }) {
    if (file) {
      setProfile((prev) => ({ ...prev, profilePic: URL.createObjectURL(file) }));
    }
+  };
+
+  const handleSocialChange = (e) => {
+    const { name, value } = e.target;
+    setProfile((prev) => ({
+      ...prev,
+      socialLinks: { ...prev.socialLinks, [name]: value },
+
+    }));
   };
 
   const handleGenreToggle = (genre) => {
@@ -86,7 +96,35 @@ export default function Profile({ registeredName }) {
             ))}
           </div>
         </div>
-        
+        <div style={{ marginBottom: '20px' }}>
+          <label>Social Links:</label>
+            <input 
+             type="text" 
+             name="twitter" 
+             value={profile.socialLinks.twitter} 
+             onChange={handleSocialChange} 
+             placeholder="Twitter URL" 
+             style={{ width: '100%', marginBottom: '5px', display: 'block' }} 
+            />
+            
+            <input 
+             type="text" 
+             name="discord" 
+             value={profile.socialLinks.discord} 
+             onChange={handleSocialChange} 
+             placeholder="Discord Tag" 
+             style={{ width: '100%', marginBottom: '5px', display: 'block' }} 
+            />
+            
+            <input 
+             type="text" 
+             name="twitch" 
+             value={profile.socialLinks.twitch} 
+             onChange={handleSocialChange} 
+             placeholder="Twitch URL" 
+             style={{ width: '100%', display: 'block' }} 
+            />
+        </div>
         <button type="submit">Save Profile</button>
       </form>
     </div>
