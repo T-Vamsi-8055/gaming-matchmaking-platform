@@ -134,7 +134,7 @@ const home = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-400">
       <div className="fixed flex flex-row z-999 min-w-screen min-h-10 sm:flex-row sm:items-center justify-between bg-neutral-900 border-b border-b-neutral-700 p-2">
-         <button className="hover:bg-neutral-600 text-xs w-24 font-mono tracking-widest text-zinc-400 uppercase bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6">
+         <button onClick={() => navigate("/profile")} className="hover:bg-neutral-600 text-xs w-24 font-mono tracking-widest text-zinc-400 uppercase bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6">
             Profile
           </button>
          <input className="hover:bg-neutral-600 focus:bg-neutral-600 focus:outline-0 text-xs font-mono tracking-widest text-zinc-400 bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6 p-1" placeholder='Search parties'/>
