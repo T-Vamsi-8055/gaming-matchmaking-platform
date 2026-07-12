@@ -7,7 +7,7 @@ const API_PORT = 3000;
 export default function USERLOGANDREG() {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
-
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -22,42 +22,47 @@ export default function USERLOGANDREG() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // console.log(
-    //   isLogin ? "Login Data:" : "Register Data:",
-    //   formData
-    // );
+  const endpoint = isLogin ? "/login" : "/register";
+    setLoading(true);
 
-    // Example API call
-    
-    const endpoint = isLogin ? "/login" : "/register";
-
-    try {
-      const response = await fetch(`http://localhost:${API_PORT}/api/auth${endpoint}`, {
+  try {
+    const response = await fetch(
+      `http://localhost:${API_PORT}/api/auth${endpoint}`,
+      {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-      //console.log(data);
-      if(response.ok){
-        if(isLogin){
-           navigate("/home");
-        } else{
-          navigate("/auth/verify-otp", { state: { email: formData.email } });
-        }
       }
-    } catch (err) {
-      console.error(err);
-    }
-    
-  };
+    );
 
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message);
+      return;
+    }
+
+    if (isLogin) {
+      navigate("/");
+    } else {
+      navigate("/otpVerify", {
+        state: {
+          email: formData.email,
+        },
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }finally{
+    setLoading(false);
+  }
+};
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex font-sans select-none overflow-hidden">
       {/* LEFT SIDE */}
@@ -175,11 +180,15 @@ export default function USERLOGANDREG() {
             </div>
               </div>
             <button
-              type="submit"
+              type="submit" disabled={loading}
               className="w-full mt-2 relative group overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold uppercase tracking-wider text-sm py-3.5 rounded-md hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:shadow-[0_0_25px_rgba(34,211,238,0.4)] active:scale-[0.99]"
             >
-              {isLogin ? "Launch Dashboard" : "Create Profile"}
-            </button>
+{loading
+    ? "Please wait..."
+    : isLogin
+        ? "Launch Dashboard"
+        : "Verify Email"
+}            </button>
           </form>
         </div>
 
