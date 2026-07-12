@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 
+
+const AVAILABLE_GENRES = ['FPS', 'RPG', 'Strategy', 'MOBA', 'Fighting', 'Sim'];
+
 export default function Profile({ registeredName }) {
   const [profile, setProfile] = useState({
    name: registeredName || '',
    description: '',
-   profilePic: null, 
+   profilePic: null,
+   genres: [],
   });
 
   const handleSubmit = (e) => {
@@ -22,6 +26,15 @@ export default function Profile({ registeredName }) {
    if (file) {
      setProfile((prev) => ({ ...prev, profilePic: URL.createObjectURL(file) }));
    }
+  };
+
+  const handleGenreToggle = (genre) => {
+   setProfile((prev) => {
+     const currentGenres = prev.genres.includes(genre)
+       ? prev.genres.filter((g) => g !== genre)
+       : [...prev.genres, genre];
+     return { ...prev, genres: currentGenres };
+    });
   };
 
 
@@ -58,6 +71,22 @@ export default function Profile({ registeredName }) {
            style={{ width: '100%', height: '80px', display: 'block' }}
           />
         </div>
+        
+        <div style={{ marginBottom: '15px' }}>
+          <label>Favorite Game Genres:</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginTop: '5px' }}>
+            {AVAILABLE_GENRES.map((genre) => (
+              <label key={genre}>
+                <input 
+                 type="checkbox"
+                 checked={profile.genres.includes(genre)} 
+                 onChange={() => handleGenreToggle(genre)} 
+                /> {genre}
+              </label>
+            ))}
+          </div>
+        </div>
+        
         <button type="submit">Save Profile</button>
       </form>
     </div>
