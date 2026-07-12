@@ -133,6 +133,13 @@ const home = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-400">
+      <div className="fixed flex flex-row z-999 min-w-screen min-h-10 sm:flex-row sm:items-center justify-between bg-neutral-900 border-b border-b-neutral-700 p-2">
+         <button className="hover:bg-neutral-600 text-xs w-24 font-mono tracking-widest text-zinc-400 uppercase bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6">
+            Profile
+          </button>
+         <input className="hover:bg-neutral-600 focus:bg-neutral-600 focus:outline-0 text-xs font-mono tracking-widest text-zinc-400 bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6 p-1" placeholder='Search parties'/>
+            
+      </div>
       {/*Main Layout*/}
       <div className="max-w-[1600px] mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
 
@@ -140,14 +147,12 @@ const home = () => {
         <main className="col-span-1 lg:col-span-2 space-y-8">
           
           {/* Welcome*/}
-          <div className="text-xs font-mono tracking-widest text-zinc-400 uppercase bg-white/5 border border-white/5 px-4 py-2 rounded-lg inline-block">
-            WELCOME
-          </div>
+         
 
           {/* Segment1: QUICK MATCHMAKING */}
-          <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-zinc-900 to-black border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
+          <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-zinc-900 to-black border border-white/10 rounded-2xl my-7 p-6 md:p-8 shadow-2xl">
             {/* Ambient Background Glows */}
-            <div className="absolute -top-24 -left-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute  -top-24 -left-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10 text-center max-w-xl mx-auto space-y-6">
