@@ -86,10 +86,16 @@ const Data = {
 
       const data = await response.json();
       //console.log(data);
-      if(response.ok){
-alert("Account created successfully!");
+     if(response.ok){
+  alert("Account created successfully! Let's set up your profile.");
+  
 
-navigate("/auth");      }else{
+  const usernameToSave = data.username || data.user?.username || "New User";
+  localStorage.setItem('registeredName', usernameToSave);
+  
+  
+  navigate("/profile");      
+}else{
         setErrorMsg(data.message);
       }
     } catch (err) {
