@@ -41,10 +41,10 @@ export default function USERLOGANDREG() {
     );
 
     const data = await response.json();
+    localStorage.setItem("jwt-auth-token",data.token);
 
     if (!response.ok) {
       alert(data.message);
-      localStorage.setItem("jwt-auth-token",data.token);
       return;
     }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 
 
 const AVAILABLE_GAMES = [
@@ -15,12 +15,13 @@ export default function Profile() {
   const [profile, setProfile] = useState({
    name: registeredName,
    description: '',
-   rank:0,
+   rank:"",
    profilePic: null,
    preferredGames: [],
    region:"",
    socialLinks: { twitter: '', discord: '', twitch: '' },
   });
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   const handleSubmit =async (e) => {
     e.preventDefault();
@@ -35,16 +36,17 @@ export default function Profile() {
       formData.append("preferredGames",JSON.stringify(profile.preferredGames));
       formData.append("socialLinks",JSON.stringify(profile.socialLinks));
       const token=localStorage.getItem("jwt-auth-token");
-      const response=await fetch(`https://localhost:${API_PORT}/api/update-profile`,{
-        method: "POST",
+      const response=await fetch(`http://localhost:${API_PORT}/api/profile`,{
+        method: "PUT",
         credentials: "include",
         headers: {
-          Authorization:`Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
+          Authorization:`Bearer ${token}`
         },
-        body: JSON.stringify(formData),
+        body: (formData),
       });
-
+      if (!response.ok) {
+          throw new Error("Failed");
+        }
       
       }catch(err){
         console.error("Error occured:",err)
@@ -59,11 +61,15 @@ export default function Profile() {
   };
 
   const handleFileChange = (e) => {
-   const file = e.target.files[0];
-   if (file) {
-     setProfile((prev) => ({ ...prev, profilePic: URL.createObjectURL(file) }));
-   }
-  };
+    const file = e.target.files[0];
+
+    if (file) {
+        setProfile(prev => ({
+            ...prev,
+            profilePic: file
+        }));
+    }
+};
 
   const handleSocialChange = (e) => {
     const { name, value } = e.target;
@@ -74,40 +80,58 @@ export default function Profile() {
     }));
   };
 
-  const handleGamesToggle = (games) => {
+  const handleGamesToggle = (game) => {
    setProfile((prev) => {
      const currentGames = prev.preferredGames.includes(game)
-       ? prev.preferedGames.filter((g) => g !== game)
+       ? prev.preferredGames.filter((g) => g !== game)
        : [...prev.preferredGames, game];
      return { ...prev, preferredGames: currentGames };
     });
   };
   const fetchExistingData=async ()=>{
-    const response=await fetch(`https://localhost:${API_PORT}/getProfile`,{
+    const token=localStorage.getItem("jwt-auth-token");
+
+    const response=await fetch(`http://localhost:${API_PORT}/api/profile`,{
         method: "GET",
         credentials: "include",
         headers: {
           Authorization:`Bearer ${token}`,
         },
       })
-      return response.message;
+      const data = await response.json();
+      if (!response.ok) {
+          throw new Error("Failed");
+        }
+      return data.data;
+;
   }
   useEffect(()=>{
-    const ExistingData=fetchExistingData();
+    async function load(){
+      const ExistingData=await fetchExistingData();
     if(ExistingData){
+        setAvatarUrl(ExistingData.avatar_url);
+
     let profileData={name: registeredName};
     profileData.description=ExistingData.bio;
     profileData.rank=ExistingData.rank;
+    profileData.profilePic=null;
+
     profileData.region=ExistingData.region;
-    profileData.preferredGames=JSON.parse(ExistingData.preferredGames);
+    profileData.preferredGames=ExistingData.preferred_games;
     profileData.socialLinks={};
     profileData.socialLinks.twitter=ExistingData.twitter;
     profileData.socialLinks.discord=ExistingData.discord;
     profileData.socialLinks.twitch=ExistingData.twitch;
-
-    setProfile(profileData)
+    console.log(profileData);
+    setProfile(profileData);
+    
     }
+    }
+    load();
   },[])
+  useEffect(() => {
+      console.log(profile);
+    }, [profile]);
   return (
     <div style={{ maxWidth: '500px', margin: '0 auto', padding: '20px' }}>
       <h2>Setup Your Profile</h2>
@@ -116,8 +140,22 @@ export default function Profile() {
         <div style={{ marginBottom: '15px' }}>
           <label>Profile Picture:</label>
           <input type="file" accept="image/*" onChange={handleFileChange} />
-          {profile.profilePic && (
-            <img src={profile.profilePic} alt="Preview" style={{ width: '100px', height: '100px', borderRadius: '50%', marginTop: '10px' }} />
+         {(profile.profilePic || avatarUrl) && (
+            <img
+              src={
+                profile.profilePic instanceof File
+                
+                  ? URL.createObjectURL(profile.profilePic)
+                  : `http://localhost:${API_PORT}/${avatarUrl.replace(/\\/g, "/")}`
+              }
+              alt="Preview"
+              style={{
+                width: "100px",
+                height: "100px",
+                borderRadius: "50%",
+                marginTop: "10px",
+              }}
+            />
           )}
         </div>
         <div style={{ marginBottom: '15px' }}>
@@ -126,8 +164,8 @@ export default function Profile() {
             type="text" 
             name="name" 
             value={profile.name} 
-            disabled 
-            style={{ width: '100%', display: 'block' }} 
+             onChange={handleChange} 
+            style={{ width: '100%', display: 'block' ,color:"black"}} 
           />
           <label>Rank:</label>
           </div><div style={{ marginBottom: '15px' }}>

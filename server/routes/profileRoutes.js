@@ -1,19 +1,21 @@
 import {Router} from "express";
 
 import {upload} from "../middlewares/upload.js";
-import {updateProfile} from "../controllers/profile.controller.js"
 
 const route=Router();
-import {handleUserProfileUpdate,handleGetUserProfile} from "../controllers/authController.js"
+import {handleUserProfileUpdate,handleGetUserProfile} from "../controllers/updateProfile.js"
+import { verifyJWT } from "../middlewares/authMiddleware.js";
 
-route.get("/",
+route.get(
+    "/",
+    verifyJWT,
     handleGetUserProfile
-)
+);
 
-route.put("/",upload.single("profilePic"),
+route.put(
+    "/",
+    verifyJWT,
+    upload.single("profilePic"),
     handleUserProfileUpdate
-)
-
-
-
+);
 export {route};
