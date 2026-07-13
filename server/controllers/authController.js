@@ -217,7 +217,7 @@ async function handleOtpVerify(req,res){
 
         const user = pending.rows[0];
 
-        await client.query(
+        const userId=await client.query(
             `
             INSERT INTO users
             (
@@ -227,7 +227,7 @@ async function handleOtpVerify(req,res){
             )
 
             VALUES
-            ($1,$2,$3)
+            ($1,$2,$3) RETURNING id
             `,
             [
                 user.username,
@@ -245,10 +245,19 @@ async function handleOtpVerify(req,res){
         );
 
         await client.query("COMMIT");
+        const token = generateToken({id:userId.rows[0].id,email:user.email});
 
-        return res.status(201).json({
-            message:"Account created"
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         });
+
+        return res.status(200).json({
+            message: "Account created and Login successful",
+        });
+        
 
     }
     catch(err){

@@ -25,6 +25,28 @@ CREATE TABLE IF NOT EXISTS pending_users (
     last_sent_at TIMESTAMP DEFAULT NOW()
 );
 
+-- PROFILE STORAGE
+
+CREATE TABLE IF NOT EXISTS profiles (
+    user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+
+    bio TEXT,
+    avatar_url TEXT,
+
+    preferred_games TEXT[],
+
+    rank VARCHAR(50),
+    region VARCHAR(50),
+
+    twitter TEXT,
+    discord TEXT,
+    twitch TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 -- ===========================
 -- INDEXES
 -- ===========================
@@ -37,3 +59,13 @@ ON pending_users(email);
 
 CREATE INDEX IF NOT EXISTS idx_pending_users_expires
 ON pending_users(expires_at);
+
+CREATE INDEX IF NOT EXISTS idx_profiles_region
+ON profiles(region);
+
+CREATE INDEX IF NOT EXISTS idx_profiles_rank
+ON profiles(rank);
+
+CREATE INDEX IF NOT EXISTS idx_profiles_games
+ON profiles
+USING GIN (preferred_games);

@@ -1,20 +1,53 @@
 import React, { useState } from 'react';
 
 
-const AVAILABLE_GENRES = ['FPS', 'RPG', 'Strategy', 'MOBA', 'Fighting', 'Sim'];
-
-export default function Profile({ registeredName }) {
+const AVAILABLE_GAMES = [
+    "Valorant",
+    "CS2",
+    "PUBG",
+    "Dota 2",
+    "League of Legends",
+    "Apex Legends"
+];
+const registeredName=localStorage.getItem("registeredName") || '';
+export default function Profile() {
   const [profile, setProfile] = useState({
-   name: registeredName || '',
+   name: registeredName,
    description: '',
+   rank:0,
    profilePic: null,
-   genres: [],
+   preferredGames: [],
+   region:"",
    socialLinks: { twitter: '', discord: '', twitch: '' },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Saving Profile:', profile);
+    try{
+      const formData=new FormData();
+      formData.append("description",profile.description);
+      formData.append("rank",profile.rank);
+      formData.append("profilePic",profile.profilePic);
+      formData.append("region",profile.region);
+      formData.append("preferredGames",JSON.stringify(profile.preferredGames));
+      formData.append("socialLinks",JSON.stringify(profile.socialLinks));
+
+      const response=await fetch(`https://localhost:${API_PORT}/api/update-profile`,{
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      
+      }catch(err){
+        console.error("Error occured:",err)
+      }
+    
+    
   };
 
   const handleChange = (e) => {
@@ -38,12 +71,12 @@ export default function Profile({ registeredName }) {
     }));
   };
 
-  const handleGenreToggle = (genre) => {
+  const handleGamesToggle = (games) => {
    setProfile((prev) => {
-     const currentGenres = prev.genres.includes(genre)
-       ? prev.genres.filter((g) => g !== genre)
-       : [...prev.genres, genre];
-     return { ...prev, genres: currentGenres };
+     const currentGames = prev.preferredGames.includes(game)
+       ? prev.preferedGames.filter((g) => g !== game)
+       : [...prev.preferredGames, game];
+     return { ...prev, preferredGames: currentGames };
     });
   };
 
@@ -69,6 +102,16 @@ export default function Profile({ registeredName }) {
             disabled 
             style={{ width: '100%', display: 'block' }} 
           />
+          <label>Rank:</label>
+          </div><div style={{ marginBottom: '15px' }}>
+          <input 
+            type="text" inputMode='numeric' 
+            name="rank" 
+            onChange={handleChange} 
+
+            value={profile.rank}  
+            style={{ width: '100%', display: 'block' }} 
+          />
         </div>
         
         <div style={{ marginBottom: '15px' }}>
@@ -81,17 +124,27 @@ export default function Profile({ registeredName }) {
            style={{ width: '100%', height: '80px', display: 'block' }}
           />
         </div>
+        <div style={{ marginBottom: '15px' }}>
+          <label>Region:</label>
+          <textarea 
+           name="region" 
+           value={profile.region} 
+           onChange={handleChange} 
+           placeholder="Enter your region"
+           style={{ width: '100%', height: '80px', display: 'block' }}
+          />
+        </div>
         
         <div style={{ marginBottom: '15px' }}>
-          <label>Favorite Game Genres:</label>
+          <label>Games you play:</label>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginTop: '5px' }}>
-            {AVAILABLE_GENRES.map((genre) => (
-              <label key={genre}>
+            {AVAILABLE_GAMES.map((game) => (
+              <label key={game}>
                 <input 
                  type="checkbox"
-                 checked={profile.genres.includes(genre)} 
-                 onChange={() => handleGenreToggle(genre)} 
-                /> {genre}
+                 checked={profile.preferredGames.includes(game)} 
+                 onChange={() => handleGamesToggle(game)} 
+                /> {game}
               </label>
             ))}
           </div>
