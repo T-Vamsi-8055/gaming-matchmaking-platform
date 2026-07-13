@@ -1,17 +1,19 @@
-import express from "express";
-const route=express.Router();
-import {handleUserProfileUpdate,handleUserProfileCreate,handleGetUserProfile} from "../controllers/authController.js"
+import {Router} from "express";
+
+import {upload} from "../middlewares/upload.js";
+import {updateProfile} from "../controllers/profile.controller.js"
+
+const route=Router();
+import {handleUserProfileUpdate,handleGetUserProfile} from "../controllers/authController.js"
 
 route.get("/",
     handleGetUserProfile
 )
 
-route.put("/",
+route.put("/",upload.single("profilePic"),
     handleUserProfileUpdate
 )
 
-route.post("/",
-    handleUserProfileCreate
-)
+
 
 export {route};

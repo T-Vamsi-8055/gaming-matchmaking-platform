@@ -13,6 +13,10 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
+app.use(express.urlencoded({extended:false}));
+
+app.use("/uploads",express.static("uploads"));
+
 app.use(cookieParser());
 app.use("/api/auth",authRoute);
 app.use("/api/profile",profileRoute);
