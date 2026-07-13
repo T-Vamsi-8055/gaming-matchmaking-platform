@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { generateOTP } from "../utils/generateOTP.js";
 import { generateToken } from "../utils/generateToken.js";
 import { sendOTPEmail } from "../utils/sendOTPEmail.js";
-
+import dotenv from "dotenv"
 
 async function handleAuthLogin(req, res) {
     const { email, password } = req.body;
@@ -257,6 +257,7 @@ async function handleOtpVerify(req,res){
 
         return res.status(200).json({
             message: "Account created and Login successful",
+            username:user.username
         });
         
 
