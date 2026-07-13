@@ -9,6 +9,7 @@ const AVAILABLE_GAMES = [
     "League of Legends",
     "Apex Legends"
 ];
+const API_PORT=3000;
 const registeredName=localStorage.getItem("registeredName") || '';
 export default function Profile() {
   const [profile, setProfile] = useState({
@@ -21,22 +22,24 @@ export default function Profile() {
    socialLinks: { twitter: '', discord: '', twitch: '' },
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit =async (e) => {
     e.preventDefault();
     console.log('Saving Profile:', profile);
     try{
       const formData=new FormData();
+      
       formData.append("description",profile.description);
       formData.append("rank",profile.rank);
       formData.append("profilePic",profile.profilePic);
       formData.append("region",profile.region);
       formData.append("preferredGames",JSON.stringify(profile.preferredGames));
       formData.append("socialLinks",JSON.stringify(profile.socialLinks));
-
+      const token=localStorage.getItem("jwt-auth-token");
       const response=await fetch(`https://localhost:${API_PORT}/api/update-profile`,{
         method: "POST",
         credentials: "include",
         headers: {
+          Authorization:`Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
         body: JSON.stringify(formData),
@@ -79,8 +82,19 @@ export default function Profile() {
      return { ...prev, preferredGames: currentGames };
     });
   };
-
-
+  const fetchExistingData=async ()=>{
+    const response=await fetch(`https://localhost:${API_PORT}/getProfile`,{
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Authorization:`Bearer ${token}`,
+        },
+      })
+      return response.message;
+  }
+  useEffect(()=>{
+    fetchExistingData();
+  },[])
   return (
     <div style={{ maxWidth: '500px', margin: '0 auto', padding: '20px' }}>
       <h2>Setup Your Profile</h2>

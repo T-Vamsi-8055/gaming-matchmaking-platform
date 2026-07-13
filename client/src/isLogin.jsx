@@ -44,6 +44,7 @@ export default function USERLOGANDREG() {
 
     if (!response.ok) {
       alert(data.message);
+      localStorage.setItem("jwt-auth-token",data.token);
       return;
     }
 
