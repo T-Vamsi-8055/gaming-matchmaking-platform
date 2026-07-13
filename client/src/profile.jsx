@@ -93,7 +93,20 @@ export default function Profile() {
       return response.message;
   }
   useEffect(()=>{
-    fetchExistingData();
+    const ExistingData=fetchExistingData();
+    if(ExistingData){
+    let profileData={name: registeredName};
+    profileData.description=ExistingData.bio;
+    profileData.rank=ExistingData.rank;
+    profileData.region=ExistingData.region;
+    profileData.preferredGames=JSON.parse(ExistingData.preferredGames);
+    profileData.socialLinks={};
+    profileData.socialLinks.twitter=ExistingData.twitter;
+    profileData.socialLinks.discord=ExistingData.discord;
+    profileData.socialLinks.twitch=ExistingData.twitch;
+
+    setProfile(profileData)
+    }
   },[])
   return (
     <div style={{ maxWidth: '500px', margin: '0 auto', padding: '20px' }}>
