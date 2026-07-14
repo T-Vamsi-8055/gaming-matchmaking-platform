@@ -5,7 +5,15 @@ async function handleUserProfileUpdate(req,res){
     try{
     const profile=req.body;
     const file=req.file;
-    const avatar = file ? file.path : null;
+    const existing = await pool.query(
+        "SELECT avatar_url FROM profiles WHERE user_id = $1",
+        [req.user.id]
+    );
+
+    const avatar =
+        req.file?.path ||
+        existing.rows[0]?.avatar_url ||
+        null;
     const preferredGames =
     JSON.parse(req.body.preferredGames);
     const socialLinks = JSON.parse(req.body.socialLinks);

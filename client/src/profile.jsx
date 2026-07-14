@@ -23,7 +23,7 @@ export default function Profile() {
     region: "",
     socialLinks: { twitter: '', discord: '', twitch: '' },
   });
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarURL, setAvatarURL] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,7 +32,9 @@ export default function Profile() {
       const formData = new FormData();
       formData.append("description", profile.description);
       formData.append("rank", profile.rank);
-      formData.append("profilePic", profile.profilePic);
+      if (profile.profilePic instanceof File) {
+          formData.append("profilePic", profile.profilePic);
+      }
       formData.append("region", profile.region);
       formData.append("preferredGames", JSON.stringify(profile.preferredGames));
       formData.append("socialLinks", JSON.stringify(profile.socialLinks));
@@ -62,6 +64,7 @@ export default function Profile() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setAvatarURL(URL.createObjectURL(file));
       setProfile(prev => ({
         ...prev,
         profilePic: file
@@ -107,7 +110,7 @@ export default function Profile() {
       try {
         const ExistingData = await fetchExistingData();
         if (ExistingData) {
-          setAvatarUrl(ExistingData.avatar_url);
+          setAvatarURL(ExistingData.avatar_url);
 
           let profileData = { name: registeredName };
           profileData.description = ExistingData.bio || '';
@@ -170,12 +173,12 @@ export default function Profile() {
                 {/* Profile Picture Upload Section */}
                 <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-zinc-950/40 border border-white/5 rounded-xl">
                   <div className="relative w-20 h-20 bg-zinc-950 border border-white/10 rounded-full flex items-center justify-center overflow-hidden shrink-0">
-                    {(profile.profilePic || avatarUrl) ? (
+                    {(profile.profilePic || avatarURL) ? (
                       <img 
                         src={
                           profile.profilePic instanceof File
                             ? URL.createObjectURL(profile.profilePic)
-                            : `http://localhost:${API_PORT}/${avatarUrl.replace(/\\/g, "/")}`
+                            : `http://localhost:${API_PORT}/${avatarURL.replace(/\\/g, "/")}`
                         } 
                         alt="Preview" 
                         className="w-full h-full object-cover" 
