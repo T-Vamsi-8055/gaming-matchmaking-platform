@@ -257,7 +257,8 @@ async function handleOtpVerify(req,res){
 
         return res.status(200).json({
             message: "Account created and Login successful",
-            username:user.username
+            username:user.username,
+            token
         });
         
 

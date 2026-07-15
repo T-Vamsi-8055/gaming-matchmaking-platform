@@ -92,7 +92,7 @@ const Data = {
 
   const usernameToSave = data.username || data.user?.username || "New User";
   localStorage.setItem('registeredName', usernameToSave);
-  
+  localStorage.setItem('jwt-auth-token', data.token);
   
   navigate("/profile");      
 }else{
