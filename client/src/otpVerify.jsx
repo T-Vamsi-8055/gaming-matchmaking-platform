@@ -1,6 +1,7 @@
 import React from 'react'
 import {useState,useEffect} from 'react'
 import {useLocation,useNavigate} from 'react-router-dom'
+import {socket} from "./socket";
 
 const API_PORT= 3000
 export default function otpVerify(){
@@ -93,7 +94,10 @@ const Data = {
   const usernameToSave = data.username || data.user?.username || "New User";
   localStorage.setItem('registeredName', usernameToSave);
   localStorage.setItem('jwt-auth-token', data.token);
-  
+  socket.auth={
+    token:data.token
+  }
+  socket.connect();
   navigate("/profile");      
 }else{
         setErrorMsg(data.message);
