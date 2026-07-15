@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 
     preferred_games TEXT[],
 
-    rank VARCHAR(50),
+    gamer_id VARCHAR(50),
     region VARCHAR(50),
 
     twitter TEXT,
@@ -46,6 +46,25 @@ CREATE TABLE IF NOT EXISTS profiles (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+--MOCK GAME DATA
+
+CREATE TABLE IF NOT EXISTS mock_game_data (
+    id SERIAL PRIMARY KEY,
+
+    game_name VARCHAR(30) NOT NULL,
+
+    rank VARCHAR(30),
+
+    skill_rating INT,
+
+    games_played INT,
+
+    wins INT,
+
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(user_id, game_name)
+);
 
 -- ===========================
 -- INDEXES
@@ -63,8 +82,8 @@ ON pending_users(expires_at);
 CREATE INDEX IF NOT EXISTS idx_profiles_region
 ON profiles(region);
 
-CREATE INDEX IF NOT EXISTS idx_profiles_rank
-ON profiles(rank);
+CREATE INDEX IF NOT EXISTS idx_profiles_gamer_id
+ON profiles(gamer_id);
 
 CREATE INDEX IF NOT EXISTS idx_profiles_games
 ON profiles

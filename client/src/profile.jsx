@@ -17,7 +17,7 @@ export default function Profile() {
   const [profile, setProfile] = useState({
     name: registeredName,
     description: '',
-    rank: "",
+    gamerId: "",
     profilePic: null,
     preferredGames: [],
     region: "",
@@ -31,7 +31,7 @@ export default function Profile() {
     try {
       const formData = new FormData();
       formData.append("description", profile.description);
-      formData.append("rank", profile.rank);
+      formData.append("gamerId", profile.gamerId);
       if (profile.profilePic instanceof File) {
           formData.append("profilePic", profile.profilePic);
       }
@@ -114,7 +114,7 @@ export default function Profile() {
 
           let profileData = { name: registeredName };
           profileData.description = ExistingData.bio || '';
-          profileData.rank = ExistingData.rank || '';
+          profileData.gamerId = ExistingData.gamerId || '';
           profileData.profilePic = null;
           profileData.region = ExistingData.region || '';
           profileData.preferredGames = ExistingData.preferred_games || [];
@@ -198,7 +198,7 @@ export default function Profile() {
                   </div>
                 </div>
 
-                {/* Name and Rank Row */}
+                {/* Name and GamerId Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="text-left space-y-1.5">
                     <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Agent Name</label>
@@ -212,14 +212,13 @@ export default function Profile() {
                   </div>
 
                   <div className="text-left space-y-1.5">
-                    <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Rank / Rating</label>
+                    <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">GamerId</label>
                     <input 
                       type="text" 
-                      inputMode="numeric" 
-                      name="rank" 
-                      value={profile.rank}  
+                      name="gamerId" 
+                      value={profile.gamerId}  
                       onChange={handleChange} 
-                      placeholder="e.g. Diamond II"
+                      placeholder="e.g. faker#KR1"
                       className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-lg p-2.5 outline-none transition-all duration-200 text-sm"
                     />
                   </div>

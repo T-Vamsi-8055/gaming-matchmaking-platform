@@ -17,7 +17,7 @@ async function handleUserProfileUpdate(req,res){
     const preferredGames =
     JSON.parse(req.body.preferredGames);
     const socialLinks = JSON.parse(req.body.socialLinks);
-        const response=await pool.query("insert into PROFILES (user_id,bio,avatar_url,preferred_games,rank,region,twitter,discord,twitch) values($1,$2,$3,$4,$5,$6,$7,$8,$9) on conflict (user_id) do update set bio=EXCLUDED.bio,avatar_url=EXCLUDED.avatar_url,preferred_games=EXCLUDED.preferred_games,rank=EXCLUDED.rank,region=EXCLUDED.region,twitter=EXCLUDED.twitter,twitch=EXCLUDED.twitch,discord=EXCLUDED.discord",[req.user.id,profile.description,avatar,preferredGames,profile.rank,profile.region,socialLinks.twitter,socialLinks.discord,socialLinks.twitch]);
+        const response=await pool.query("insert into PROFILES (user_id,bio,avatar_url,preferred_games,gamer_id,region,twitter,discord,twitch) values($1,$2,$3,$4,$5,$6,$7,$8,$9) on conflict (user_id) do update set bio=EXCLUDED.bio,avatar_url=EXCLUDED.avatar_url,preferred_games=EXCLUDED.preferred_games,gamer_id=EXCLUDED.gamer_id,region=EXCLUDED.region,twitter=EXCLUDED.twitter,twitch=EXCLUDED.twitch,discord=EXCLUDED.discord",[req.user.id,profile.description,avatar,preferredGames,profile.gamerId,profile.region,socialLinks.twitter,socialLinks.discord,socialLinks.twitch]);
         
         res.status(200).json({
             message:"User profile updated."
