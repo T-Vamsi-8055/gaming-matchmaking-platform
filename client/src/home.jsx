@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { socket } from './socket.js'
 
 const API_PORT = 3000
 
@@ -121,7 +122,11 @@ const home = () => {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-
+  const handleLogOut =()=>{
+    socket.disconnect();
+    localStorage.removeItem("jwt-auth-token");
+    navigate("/auth");
+  }
   // Prevent UI flashing or undefined crashes while checking user details
   if (loading) {
     return (
@@ -136,6 +141,9 @@ const home = () => {
       <div className="fixed flex flex-row z-999 min-w-screen min-h-10 sm:flex-row sm:items-center justify-between bg-neutral-900 border-b border-b-neutral-700 p-2">
          <button onClick={() => navigate("/profile")} className="hover:bg-neutral-600 text-xs w-24 font-mono tracking-widest text-zinc-400 uppercase bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6">
             Profile
+          </button>
+         <button onClick={handleLogOut} className="hover:bg-neutral-600 text-xs w-24 font-mono tracking-widest text-zinc-400 uppercase bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6">
+            Log out
           </button>
          <input className="hover:bg-neutral-600 focus:bg-neutral-600 focus:outline-0 text-xs font-mono tracking-widest text-zinc-400 bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6 p-1" placeholder='Search parties'/>
             
