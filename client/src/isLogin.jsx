@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./isLogin.css";
 import {useNavigate} from 'react-router-dom';
-
+import { socket } from "./socket";
 const API_PORT = 3000;
 
 export default function USERLOGANDREG() {
@@ -49,7 +49,7 @@ export default function USERLOGANDREG() {
         token:data.token
       }
       socket.connect();
-      
+
     if (!response.ok) {
       alert(data.message);
       return;

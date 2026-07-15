@@ -1,5 +1,5 @@
 import {Router} from "express";
-import {handleGameInfo} from "../controllers/gameInfoController";
+import {handleGameInfo} from "../controllers/gameInfoController.js";
 
 const route=Router();
 

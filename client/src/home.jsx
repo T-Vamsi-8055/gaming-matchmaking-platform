@@ -123,9 +123,10 @@ const home = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
   const handleLogOut =()=>{
-    socket.disconnect();
+    const response=confirm("Are you sure to Log out?")
+    if(response){socket.disconnect();
     localStorage.removeItem("jwt-auth-token");
-    navigate("/auth");
+    navigate("/auth");}
   }
   // Prevent UI flashing or undefined crashes while checking user details
   if (loading) {

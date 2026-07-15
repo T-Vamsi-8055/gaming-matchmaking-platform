@@ -1,3 +1,4 @@
+import {Server } from "socket.io";
 export function initializeSocket(server) {
     const io = new Server(server, {
         cors: {
