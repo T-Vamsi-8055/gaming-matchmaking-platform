@@ -6,7 +6,12 @@ export function initializeSocket(server) {
             credentials: true
         }
     });
-
-    // middleware
-    // connection events
+    
+    io.use((socket,next)=>{
+        const token=socket.handshake.auth.token;
+        
+    })
+    io.on("connection",(socket)=>{
+        
+    })
 }

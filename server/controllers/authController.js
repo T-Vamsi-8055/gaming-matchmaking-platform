@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { pool } from "../config/db.js";
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "../config/jwt.js";
 
 import { generateOTP } from "../utils/generateOTP.js";
 import { generateToken } from "../utils/generateToken.js";
@@ -148,10 +148,7 @@ async function handleAuthMe(req, res) {
 
         }
 
-        const decoded = jwt.verify(
-            token,
-            process.env.JWT_SECRET
-        );
+        
 
         const result = await pool.query(
             `
@@ -161,7 +158,7 @@ async function handleAuthMe(req, res) {
             FROM users
             WHERE id=$1
             `,
-            [decoded.id]
+            [jwtVerify(token).id]
         );
 
         if (result.rowCount === 0) {
