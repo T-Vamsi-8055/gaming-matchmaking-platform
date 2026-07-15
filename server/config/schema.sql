@@ -51,7 +51,8 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE TABLE IF NOT EXISTS mock_game_data (
     id SERIAL PRIMARY KEY,
 
-    game_name VARCHAR(30) NOT NULL,
+    gamer_id VARCHAR(50) NOT NULL,
+    game_name VARCHAR(50) NOT NULL,
 
     rank VARCHAR(30),
 
@@ -63,7 +64,7 @@ CREATE TABLE IF NOT EXISTS mock_game_data (
 
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    UNIQUE(user_id, game_name)
+    UNIQUE(gamer_id, game_name)
 );
 
 -- ===========================

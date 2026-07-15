@@ -3,6 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { socket } from './socket.js'
 
 const API_PORT = 3000
+const AVAILABLE_GAMES = [
+  { label: 'Valorant', slug: 'valorant' },
+  { label: 'Counter-Strike 2', slug: 'cs2' },
+  { label: 'PUBG', slug: 'pubg' },
+  { label: 'Dota 2', slug: 'dota2' },
+  { label: 'League of Legends', slug: 'lol' },
+  { label: 'Apex Legends', slug: 'apex' },
+]
 
 const home = () => {
   const navigate = useNavigate();
@@ -12,6 +20,9 @@ const home = () => {
   // Authentication & Profile States
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [preferredGames, setPreferredGames] = useState([]);
+  const [gameAnalytics, setGameAnalytics] = useState({});
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   // Matchmaking Interactive States
   const [isQueueing, setIsQueueing] = useState(false);
@@ -93,11 +104,62 @@ const home = () => {
 
         const userData = await response.json();
         setUser(userData);
+
+        const token = localStorage.getItem("jwt-auth-token");
+        const profileResponse = await fetch(`http://localhost:${API_PORT}/api/profile`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          const games = profileData?.data?.preferred_games || [];
+          setPreferredGames(games);
+
+          if (games.length > 0) {
+            setAnalyticsLoading(true);
+            const analyticsResults = await Promise.all(
+              games.map(async (game) => {
+                const matchingGame = AVAILABLE_GAMES.find((item) => item.label === game);
+                const slug = matchingGame?.slug || game.toLowerCase().replace(/\s+/g, "-");
+                try {
+                  const analyticsResponse = await fetch(`http://localhost:${API_PORT}/api/game-data/${slug}`, {
+                    method: "GET",
+                    credentials: "include",
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  });
+                  if (!analyticsResponse.ok) {
+                    return null;
+                  }
+                  const parsed = await analyticsResponse.json();
+                  return { game, data: parsed.gameData };
+                } catch (error) {
+                  console.error(`Failed to load analytics for ${game}`, error);
+                  return null;
+                }
+              })
+            );
+
+            const analyticsMap = analyticsResults.reduce((acc, entry) => {
+              if (entry) {
+                acc[entry.game] = entry.data;
+              }
+              return acc;
+            }, {});
+            setGameAnalytics(analyticsMap);
+          }
+        }
       } catch (error) {
         console.error("Auth verification failed:", error);
         navigate("/auth");
       } finally {
         setLoading(false);
+        setAnalyticsLoading(false);
       }
     };
 
@@ -260,6 +322,50 @@ const home = () => {
           
           {/* Segment2: Game Discovery Grid*/}
           <section className="space-y-4">
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-bold tracking-wider uppercase text-slate-100">Connected Games</h2>
+                  <p className="text-xs text-zinc-400">Your preferred games with live stats from the analytics feed</p>
+                </div>
+                {analyticsLoading && <span className="text-xs text-cyan-400 font-mono">Loading stats...</span>}
+              </div>
+              {preferredGames.length === 0 ? (
+                <p className="mt-3 text-sm text-zinc-500">Pick your preferred games in the profile screen to see analytics here.</p>
+              ) : (
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {preferredGames.map((game) => {
+                    const analytics = gameAnalytics[game];
+                    return (
+                      <div key={game} className="rounded-xl border border-white/10 bg-zinc-950/70 p-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-semibold text-slate-100">{game}</h3>
+                          <span className="text-[10px] uppercase tracking-widest text-cyan-400">{analytics?.rank || 'Unranked'}</span>
+                        </div>
+                        {analytics ? (
+                          <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+                            <div className="rounded-lg bg-white/5 p-2">
+                              <div className="text-zinc-500">SR</div>
+                              <div className="mt-1 font-semibold text-slate-100">{analytics.skill_rating}</div>
+                            </div>
+                            <div className="rounded-lg bg-white/5 p-2">
+                              <div className="text-zinc-500">Games</div>
+                              <div className="mt-1 font-semibold text-slate-100">{analytics.games_played}</div>
+                            </div>
+                            <div className="rounded-lg bg-white/5 p-2">
+                              <div className="text-zinc-500">Wins</div>
+                              <div className="mt-1 font-semibold text-slate-100">{analytics.wins}</div>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="mt-3 text-sm text-zinc-500">No analytics data is available for this game yet.</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             {/* Header & Filters Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-xl p-4">
               <div>

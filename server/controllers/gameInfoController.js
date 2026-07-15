@@ -5,11 +5,14 @@ async function handleGameInfo(req,res){
     const userId=req.user.id;
     try{
         const response=await pool.query("select gamer_id from profiles where user_id=$1 ",[userId]);
-        if (response.rows.length === 0) {
+        if (response.rows.length === 0 || !response.rows[0].gamer_id) {
             return res.status(404).json({ message: "Profile not found" });
         }
         const gamerId=response.rows[0].gamer_id;
-        const gameData=await pool.query("select * from mock_game_data where gamer_id=$1 and game_name=$2",[gamerId,gameName]);
+        const gameData=await pool.query(
+            "select * from mock_game_data where gamer_id=$1 and lower(game_name)=lower($2)",
+            [gamerId,gameName]
+        );
         if (gameData.rows.length === 0) {
             return res.status(404).json({ message: "Game data not found" });
         }
