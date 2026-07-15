@@ -46,11 +46,12 @@ export default function Profile() {
         headers: {
           Authorization: `Bearer ${token}`
         },
-        body: formData,
+        body: formData
       });
       if (!response.ok) {
         throw new Error("Failed");
       }
+      alert("Saved successfully");
     } catch (err) {
       console.error("Error occurred:", err);
     }
@@ -114,7 +115,7 @@ export default function Profile() {
 
           let profileData = { name: registeredName };
           profileData.description = ExistingData.bio || '';
-          profileData.gamerId = ExistingData.gamerId || '';
+          profileData.gamerId = ExistingData.gamer_id || '';
           profileData.profilePic = null;
           profileData.region = ExistingData.region || '';
           profileData.preferredGames = ExistingData.preferred_games || [];

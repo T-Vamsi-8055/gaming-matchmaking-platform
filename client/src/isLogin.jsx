@@ -41,6 +41,10 @@ export default function USERLOGANDREG() {
     );
 
     const data = await response.json();
+    if (!response.ok) {
+      alert(data.message);
+      return;
+    }
     localStorage.setItem("jwt-auth-token",data.token);
     if (socket.connected) {
         socket.disconnect();
@@ -50,10 +54,7 @@ export default function USERLOGANDREG() {
       }
       socket.connect();
 
-    if (!response.ok) {
-      alert(data.message);
-      return;
-    }
+    
 
     if (isLogin) {
       navigate("/");
