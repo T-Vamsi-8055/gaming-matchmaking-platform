@@ -28,7 +28,7 @@ const home = () => {
   const [isQueueing, setIsQueueing] = useState(false);
   const [queueTime, setQueueTime] = useState(0);
   const [game, setGame] = useState('');
-  const [region, setRegion] = useState('');
+  const [queueType, setQueueType] = useState('');
   const [roomCode, setRoomCode] = useState('');
   
 {/* States for Segment2: Game Discovery Grid */}
@@ -178,7 +178,15 @@ const home = () => {
     }
     return () => clearInterval(timer);
   }, [isQueueing]);
-
+  const handleFindMatch=() => {
+    setIsQueueing(!isQueueing);
+    socket.emit("join-queue",game,queueType);
+    navigate("/queueScreen",{
+      state:{
+        game:game,queueType:queueType
+      }
+    });
+  }
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -186,9 +194,12 @@ const home = () => {
   };
   const handleLogOut =()=>{
     const response=confirm("Are you sure to Log out?")
-    if(response){socket.disconnect();
-    localStorage.removeItem("jwt-auth-token");
-    navigate("/auth");}
+      if(response){
+      console.log(socket.connected)
+      socket.disconnect();
+            console.log(socket.connected)
+localStorage.removeItem("jwt-auth-token");
+      navigate("/auth");}
   }
   // Prevent UI flashing or undefined crashes while checking user details
   if (loading) {
@@ -256,25 +267,25 @@ const home = () => {
 
                   {/* Regional Deploy Select dropdown */}
                   <div className="text-left space-y-1.5">
-                    <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Region</label>
+                    <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Queue Type</label>
                     <select 
-                      value={region}
-                      onChange={(e) => setRegion(e.target.value)}
+                      value={queueType}
+                      onChange={(e) => setQueueType(e.target.value)}
                       disabled={isQueueing}
                       className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-lg p-2.5 outline-none transition-all duration-200 text-sm cursor-pointer disabled:opacity-50"
                     >
-                      <option value="">Select Region...</option>
-                      <option value="na">North America</option>
-                      <option value="euw">Europe West</option>
-                      <option value="ap">Asia Pacific</option>
+                      <option value="">Select Queue Type...</option>
+                      <option value="1">Solo</option>
+                      <option value="2">Duo</option>
+                      <option value="4">Squad</option>
                     </select>
                   </div>
                 </div>
 
                 {/*Matchmaking Trigger Button */}
                 <button
-                  onClick={() => setIsQueueing(!isQueueing)}
-                  disabled={!game || !region}
+                  onClick={handleFindMatch}
+                  disabled={!game || !queueType}
                   className={`w-full py-4 rounded-xl font-black uppercase tracking-widest transition-all duration-300 transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none
                     ${isQueueing 
                       ? 'bg-emerald-500 text-zinc-950 shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:bg-emerald-400' 
