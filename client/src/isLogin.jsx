@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./isLogin.css";
 import {useNavigate} from 'react-router-dom';
-
+import { socket } from "./socket";
 const API_PORT = 3000;
 
 export default function USERLOGANDREG() {
@@ -41,11 +41,20 @@ export default function USERLOGANDREG() {
     );
 
     const data = await response.json();
-
     if (!response.ok) {
       alert(data.message);
       return;
     }
+    localStorage.setItem("jwt-auth-token",data.token);
+    if (socket.connected) {
+        socket.disconnect();
+      }
+      socket.auth={
+        token:data.token
+      }
+      socket.connect();
+
+    
 
     if (isLogin) {
       navigate("/");

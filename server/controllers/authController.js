@@ -1,11 +1,11 @@
 import bcrypt from "bcrypt";
 import { pool } from "../config/db.js";
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "../config/jwt.js";
 
 import { generateOTP } from "../utils/generateOTP.js";
 import { generateToken } from "../utils/generateToken.js";
 import { sendOTPEmail } from "../utils/sendOTPEmail.js";
-
+import dotenv from "dotenv"
 
 async function handleAuthLogin(req, res) {
     const { email, password } = req.body;
@@ -47,6 +47,7 @@ async function handleAuthLogin(req, res) {
 
         return res.status(200).json({
             message: "Login successful",
+            token
         });
 
     } catch (err) {
@@ -147,10 +148,7 @@ async function handleAuthMe(req, res) {
 
         }
 
-        const decoded = jwt.verify(
-            token,
-            process.env.JWT_SECRET
-        );
+        
 
         const result = await pool.query(
             `
@@ -160,7 +158,7 @@ async function handleAuthMe(req, res) {
             FROM users
             WHERE id=$1
             `,
-            [decoded.id]
+            [jwtVerify(token).id]
         );
 
         if (result.rowCount === 0) {
@@ -217,7 +215,7 @@ async function handleOtpVerify(req,res){
 
         const user = pending.rows[0];
 
-        await client.query(
+        const userId=await client.query(
             `
             INSERT INTO users
             (
@@ -227,7 +225,7 @@ async function handleOtpVerify(req,res){
             )
 
             VALUES
-            ($1,$2,$3)
+            ($1,$2,$3) RETURNING id
             `,
             [
                 user.username,
@@ -245,10 +243,21 @@ async function handleOtpVerify(req,res){
         );
 
         await client.query("COMMIT");
+        const token = generateToken({id:userId.rows[0].id,email:user.email});
 
-        return res.status(201).json({
-            message:"Account created"
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         });
+
+        return res.status(200).json({
+            message: "Account created and Login successful",
+            username:user.username,
+            token
+        });
+        
 
     }
     catch(err){

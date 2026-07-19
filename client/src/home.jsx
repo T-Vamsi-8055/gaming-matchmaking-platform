@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { socket } from './socket.js'
 
 const API_PORT = 3000
+const AVAILABLE_GAMES = [
+  { label: 'Valorant', slug: 'valorant' },
+  { label: 'Counter-Strike 2', slug: 'cs2' },
+  { label: 'PUBG', slug: 'pubg' },
+  { label: 'Dota 2', slug: 'dota2' },
+  { label: 'League of Legends', slug: 'lol' },
+  { label: 'Apex Legends', slug: 'apex' },
+]
 
 const home = () => {
   const navigate = useNavigate();
@@ -11,12 +20,15 @@ const home = () => {
   // Authentication & Profile States
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [preferredGames, setPreferredGames] = useState([]);
+  const [gameAnalytics, setGameAnalytics] = useState({});
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   // Matchmaking Interactive States
   const [isQueueing, setIsQueueing] = useState(false);
   const [queueTime, setQueueTime] = useState(0);
   const [game, setGame] = useState('');
-  const [region, setRegion] = useState('');
+  const [queueType, setQueueType] = useState('');
   const [roomCode, setRoomCode] = useState('');
   
 {/* States for Segment2: Game Discovery Grid */}
@@ -92,11 +104,62 @@ const home = () => {
 
         const userData = await response.json();
         setUser(userData);
+
+        const token = localStorage.getItem("jwt-auth-token");
+        const profileResponse = await fetch(`http://localhost:${API_PORT}/api/profile`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          const games = profileData?.data?.preferred_games || [];
+          setPreferredGames(games);
+
+          if (games.length > 0) {
+            setAnalyticsLoading(true);
+            const analyticsResults = await Promise.all(
+              games.map(async (game) => {
+                const matchingGame = AVAILABLE_GAMES.find((item) => item.label === game);
+                const slug = matchingGame?.slug || game.toLowerCase().replace(/\s+/g, "-");
+                try {
+                  const analyticsResponse = await fetch(`http://localhost:${API_PORT}/api/game-data/${slug}`, {
+                    method: "GET",
+                    credentials: "include",
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  });
+                  if (!analyticsResponse.ok) {
+                    return null;
+                  }
+                  const parsed = await analyticsResponse.json();
+                  return { game, data: parsed.gameData };
+                } catch (error) {
+                  console.error(`Failed to load analytics for ${game}`, error);
+                  return null;
+                }
+              })
+            );
+
+            const analyticsMap = analyticsResults.reduce((acc, entry) => {
+              if (entry) {
+                acc[entry.game] = entry.data;
+              }
+              return acc;
+            }, {});
+            setGameAnalytics(analyticsMap);
+          }
+        }
       } catch (error) {
         console.error("Auth verification failed:", error);
         navigate("/auth");
       } finally {
         setLoading(false);
+        setAnalyticsLoading(false);
       }
     };
 
@@ -115,13 +178,29 @@ const home = () => {
     }
     return () => clearInterval(timer);
   }, [isQueueing]);
-
+  const handleFindMatch=() => {
+    setIsQueueing(!isQueueing);
+    socket.emit("join-queue",game,queueType);
+    navigate("/queueScreen",{
+      state:{
+        game:game,queueType:queueType
+      }
+    });
+  }
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-
+  const handleLogOut =()=>{
+    const response=confirm("Are you sure to Log out?")
+      if(response){
+      console.log(socket.connected)
+      socket.disconnect();
+            console.log(socket.connected)
+localStorage.removeItem("jwt-auth-token");
+      navigate("/auth");}
+  }
   // Prevent UI flashing or undefined crashes while checking user details
   if (loading) {
     return (
@@ -133,6 +212,16 @@ const home = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-400">
+      <div className="fixed flex flex-row z-999 min-w-screen min-h-10 sm:flex-row sm:items-center justify-between bg-neutral-900 border-b border-b-neutral-700 p-2">
+         <button onClick={() => navigate("/profile")} className="hover:bg-neutral-600 text-xs w-24 font-mono tracking-widest text-zinc-400 uppercase bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6">
+            Profile
+          </button>
+         <button onClick={handleLogOut} className="hover:bg-neutral-600 text-xs w-24 font-mono tracking-widest text-zinc-400 uppercase bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6">
+            Log out
+          </button>
+         <input className="hover:bg-neutral-600 focus:bg-neutral-600 focus:outline-0 text-xs font-mono tracking-widest text-zinc-400 bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6 p-1" placeholder='Search parties'/>
+            
+      </div>
       {/*Main Layout*/}
       <div className="max-w-[1600px] mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
 
@@ -140,14 +229,12 @@ const home = () => {
         <main className="col-span-1 lg:col-span-2 space-y-8">
           
           {/* Welcome*/}
-          <div className="text-xs font-mono tracking-widest text-zinc-400 uppercase bg-white/5 border border-white/5 px-4 py-2 rounded-lg inline-block">
-            WELCOME
-          </div>
+         
 
           {/* Segment1: QUICK MATCHMAKING */}
-          <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-zinc-900 to-black border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
+          <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-zinc-900 to-black border border-white/10 rounded-2xl my-7 p-6 md:p-8 shadow-2xl">
             {/* Ambient Background Glows */}
-            <div className="absolute -top-24 -left-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute  -top-24 -left-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10 text-center max-w-xl mx-auto space-y-6">
@@ -180,25 +267,25 @@ const home = () => {
 
                   {/* Regional Deploy Select dropdown */}
                   <div className="text-left space-y-1.5">
-                    <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Region</label>
+                    <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Queue Type</label>
                     <select 
-                      value={region}
-                      onChange={(e) => setRegion(e.target.value)}
+                      value={queueType}
+                      onChange={(e) => setQueueType(e.target.value)}
                       disabled={isQueueing}
                       className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-lg p-2.5 outline-none transition-all duration-200 text-sm cursor-pointer disabled:opacity-50"
                     >
-                      <option value="">Select Region...</option>
-                      <option value="na">North America</option>
-                      <option value="euw">Europe West</option>
-                      <option value="ap">Asia Pacific</option>
+                      <option value="">Select Queue Type...</option>
+                      <option value="1">Solo</option>
+                      <option value="2">Duo</option>
+                      <option value="4">Squad</option>
                     </select>
                   </div>
                 </div>
 
                 {/*Matchmaking Trigger Button */}
                 <button
-                  onClick={() => setIsQueueing(!isQueueing)}
-                  disabled={!game || !region}
+                  onClick={handleFindMatch}
+                  disabled={!game || !queueType}
                   className={`w-full py-4 rounded-xl font-black uppercase tracking-widest transition-all duration-300 transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none
                     ${isQueueing 
                       ? 'bg-emerald-500 text-zinc-950 shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:bg-emerald-400' 
@@ -246,6 +333,50 @@ const home = () => {
           
           {/* Segment2: Game Discovery Grid*/}
           <section className="space-y-4">
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-bold tracking-wider uppercase text-slate-100">Connected Games</h2>
+                  <p className="text-xs text-zinc-400">Your preferred games with live stats from the analytics feed</p>
+                </div>
+                {analyticsLoading && <span className="text-xs text-cyan-400 font-mono">Loading stats...</span>}
+              </div>
+              {preferredGames.length === 0 ? (
+                <p className="mt-3 text-sm text-zinc-500">Pick your preferred games in the profile screen to see analytics here.</p>
+              ) : (
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {preferredGames.map((game) => {
+                    const analytics = gameAnalytics[game];
+                    return (
+                      <div key={game} className="rounded-xl border border-white/10 bg-zinc-950/70 p-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-semibold text-slate-100">{game}</h3>
+                          <span className="text-[10px] uppercase tracking-widest text-cyan-400">{analytics?.rank || 'Unranked'}</span>
+                        </div>
+                        {analytics ? (
+                          <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+                            <div className="rounded-lg bg-white/5 p-2">
+                              <div className="text-zinc-500">SR</div>
+                              <div className="mt-1 font-semibold text-slate-100">{analytics.skill_rating}</div>
+                            </div>
+                            <div className="rounded-lg bg-white/5 p-2">
+                              <div className="text-zinc-500">Games</div>
+                              <div className="mt-1 font-semibold text-slate-100">{analytics.games_played}</div>
+                            </div>
+                            <div className="rounded-lg bg-white/5 p-2">
+                              <div className="text-zinc-500">Wins</div>
+                              <div className="mt-1 font-semibold text-slate-100">{analytics.wins}</div>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="mt-3 text-sm text-zinc-500">No analytics data is available for this game yet.</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             {/* Header & Filters Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-xl p-4">
               <div>
