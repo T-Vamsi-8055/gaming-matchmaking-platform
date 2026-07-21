@@ -1,3 +1,7 @@
+import queueObj from "./queueObjClass.js";
+import {penaltyRange} from "./GameLogic.js";
+
+
 export default class queue{
     constructor(game,queueType){
         this.queueArray=[];
