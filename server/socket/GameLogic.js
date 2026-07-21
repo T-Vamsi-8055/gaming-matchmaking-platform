@@ -75,3 +75,6 @@ export function penaltyRange(time){
     if(time<45000)return 300;
     return 1000000;
 }
+
+export const matchSize=4;
+export let finalMatches=[];

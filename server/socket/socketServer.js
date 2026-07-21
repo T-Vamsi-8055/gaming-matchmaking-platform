@@ -3,11 +3,9 @@ import { jwtVerify } from "../config/jwt.js";
 import { pool } from "../config/db.js";
 import queue from "./queueClass.js"
 import queueObj from "./queueObjClass.js"
-import { startMatch,FindGameScore } from "./GameLogic.js";
+import { startMatch,FindGameScore,teamDivider } from "./GameLogic.js";
+import { finalMatches } from "./GameLogic.js";
 
-const matchSize=4;
-
-let finalMatches=[];
 
 
 
@@ -67,7 +65,7 @@ export function initializeSocket(server) {
                 startMatch(gameMatch,queueType,io);
                 
             })
-            finalMatches=[];
+            finalMatches.length=0;
         },3000)
     io.on("connection",(socket)=>{
         console.log("Socket connected with userId",socket.userId);

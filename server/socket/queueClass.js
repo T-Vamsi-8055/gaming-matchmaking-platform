@@ -1,5 +1,6 @@
 import queueObj from "./queueObjClass.js";
-import {penaltyRange} from "./GameLogic.js";
+import {penaltyRange, teamDivider} from "./GameLogic.js";
+import { matchSize,finalMatches } from "./GameLogic.js";
 
 
 export default class queue{
