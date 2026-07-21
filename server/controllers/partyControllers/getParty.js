@@ -3,7 +3,9 @@ import { pool } from "../../config/db.js";
 
 export const getParty = async (req, res) => {
     try {
-        const { partyId } = req.params;
+        const partyId  = req.params.id;
+
+        console.log(partyId);
 
         const result = await pool.query(
             `SELECT

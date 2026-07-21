@@ -115,6 +115,39 @@ export function initializeSocket(server) {
             }
         })
 
+        
+        socket.on("join-party-room", (partyId) => {
+            socket.join(`party:${partyId}`);
+
+            console.log(
+                `User ${socket.userId} joined party ${partyId}`
+            );
+        });
+
+        socket.on("leave-party-room", (partyId) => {
+            socket.leave(`party:${partyId}`);
+
+            console.log(
+                `User ${socket.userId} left party ${partyId}`
+            );
+        });
+
+        socket.on("party-message", async ({ partyId, message }) => {
+            if (!message || !message.trim()) {
+                return;
+            }
+
+            // For now, broadcast the message to everyone
+            // currently inside this party's Socket.IO room.
+            io.to(`party:${partyId}`).emit("party-message", {
+                userId: socket.userId,
+                message: message.trim(),
+                createdAt: Date.now(),
+            });
+        });
+
+
+
     })
     
 }

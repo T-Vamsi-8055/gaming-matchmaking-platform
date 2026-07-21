@@ -19,8 +19,6 @@ route.post("/leave-party",
     leaveParty
 )
 
-route.get("/get-party",
-    getParty
-)
+route.get("/party/:id", authMiddleware, getParty);
 
 export default route;

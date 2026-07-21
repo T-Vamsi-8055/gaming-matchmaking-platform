@@ -7,6 +7,7 @@ import QueueScreen from './queueScreen.jsx'
 import Profile from './profile.jsx'
 import OtpVerify from "./otpVerify.jsx";
 import Party from './party.jsx'
+import PartyRoom from './partyRoom.jsx'
 
 import {  BrowserRouter,Routes,Route } from 'react-router-dom';
 import Match from './match.jsx'
@@ -22,6 +23,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/queueScreen" element={<QueueScreen />}></Route>
         <Route path="/match" element={<Match />}></Route>
         <Route path="/party" element={<Party />}></Route>
+        <Route path="/party/:id" element={<PartyRoom />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
