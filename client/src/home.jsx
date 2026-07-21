@@ -201,6 +201,7 @@ const home = () => {
 localStorage.removeItem("jwt-auth-token");
       navigate("/auth");}
   }
+  
   // Prevent UI flashing or undefined crashes while checking user details
   if (loading) {
     return (
@@ -219,7 +220,9 @@ localStorage.removeItem("jwt-auth-token");
          <button onClick={handleLogOut} className="hover:bg-neutral-600 text-xs w-24 font-mono tracking-widest text-zinc-400 uppercase bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6">
             Log out
           </button>
-         <input className="hover:bg-neutral-600 focus:bg-neutral-600 focus:outline-0 text-xs font-mono tracking-widest text-zinc-400 bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6 p-1" placeholder='Search parties'/>
+         <button onClick={() => navigate("/party")} className="hover:bg-neutral-600 text-xs w-24 font-mono tracking-widest text-zinc-400 uppercase bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6">
+            Parties
+          </button>
             
       </div>
       {/*Main Layout*/}

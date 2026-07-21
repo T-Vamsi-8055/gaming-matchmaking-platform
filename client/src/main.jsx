@@ -1,11 +1,12 @@
 import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
+import './style/index.css'
 import Login from './isLogin.jsx'
 import Home from './home.jsx' 
 import QueueScreen from './queueScreen.jsx' 
 import Profile from './profile.jsx'
 import OtpVerify from "./otpVerify.jsx";
+import Party from './party.jsx'
 
 import {  BrowserRouter,Routes,Route } from 'react-router-dom';
 import Match from './match.jsx'
@@ -20,6 +21,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/profile" element={<Profile />}></Route>
         <Route path="/queueScreen" element={<QueueScreen />}></Route>
         <Route path="/match" element={<Match />}></Route>
+        <Route path="/party" element={<Party />}></Route>
       </Routes>
     </BrowserRouter>
   </StrictMode>
