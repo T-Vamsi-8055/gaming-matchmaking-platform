@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import {route as authRoute} from './routes/authRoutes.js';
 import {route as profileRoute} from './routes/profileRoutes.js';
 import {route as gameDataRoute} from './routes/gameInfoRoutes.js';
+import partyRoutes from './routes/partyRoutes.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { initializeSocket } from './socket/socketServer.js';
@@ -24,6 +25,7 @@ app.use(cookieParser());
 app.use("/api/auth",authRoute);
 app.use("/api/profile",profileRoute);
 app.use("/api/game-data",gameDataRoute);
+app.use("/api/party",partyRoutes);
 
 const server = createServer(app);
 initializeSocket(server);
