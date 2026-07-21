@@ -67,6 +67,35 @@ CREATE TABLE IF NOT EXISTS mock_game_data (
     UNIQUE(gamer_id, game_name)
 );
 
+--Party data
+CREATE TABLE if not exists parties (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    party_name VARCHAR(50) NOT NULL,
+    invite_code VARCHAR(8) UNIQUE NOT NULL,
+    leader_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    visibility VARCHAR(10) NOT NULL DEFAULT 'PUBLIC',
+    status VARCHAR(20) NOT NULL DEFAULT 'OPEN',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT valid_visibility
+        CHECK (visibility IN ('PUBLIC', 'PRIVATE')),
+
+    CONSTRAINT valid_status
+        CHECK (status IN ('OPEN', 'CLOSED'))
+);
+
+--Party members
+CREATE TABLE if not exists party_members (
+    party_id UUID NOT NULL REFERENCES parties(id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (party_id, user_id)
+);
+
+
+
+
 -- ===========================
 -- INDEXES
 -- ===========================
