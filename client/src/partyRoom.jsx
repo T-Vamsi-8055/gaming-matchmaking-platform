@@ -75,7 +75,7 @@ const PartyRoom = () => {
             return;
         }
 
-        socket.emit("party-message", {
+        socket.emit("send-party-message", {
             partyId: id,
             message: message.trim(),
         });
@@ -86,7 +86,43 @@ const PartyRoom = () => {
     if (!party) {
         return <div>Loading party...</div>;
     }
+    useEffect(() => {
+        if (!partyId) return;
 
+        socket.emit(
+            "join-party-room",
+            partyId
+        );
+
+        return () => {
+            socket.emit(
+                "leave-party-room",
+                partyId
+            );
+        };
+    }, [partyId]);
+    useEffect(() => {
+
+        const handleMessage = (message) => {
+            setMessages((prev) => [
+                ...prev,
+                message
+            ]);
+        };
+
+        socket.on(
+            "party-message",
+            handleMessage
+        );
+
+        return () => {
+            socket.off(
+                "party-message",
+                handleMessage
+            );
+        };
+
+    }, []);
     return (
         <div>
             <h1>{party.party_name}</h1>
@@ -100,7 +136,7 @@ const PartyRoom = () => {
             </p>
 
             <h2>Members</h2>
-            
+
             {party.members.map((member) => (
                 <div key={member.userId}>
                     {member.username}

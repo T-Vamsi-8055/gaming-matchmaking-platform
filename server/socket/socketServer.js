@@ -132,18 +132,71 @@ export function initializeSocket(server) {
             );
         });
 
-        socket.on("party-message", async ({ partyId, message }) => {
-            if (!message || !message.trim()) {
-                return;
-            }
+        socket.on("send-party-message", async ({ partyId, message }) => {
+            try {
+                if (!message || !message.trim()) {
+                    return;
+                }
 
-            // For now, broadcast the message to everyone
-            // currently inside this party's Socket.IO room.
-            io.to(`party:${partyId}`).emit("party-message", {
-                userId: socket.userId,
-                message: message.trim(),
-                createdAt: Date.now(),
-            });
+                // Check whether the user actually belongs to this party
+                const memberResult = await pool.query(
+                    `SELECT 1
+                    FROM party_members
+                    WHERE party_id = $1
+                    AND user_id = $2`,
+                    [partyId, socket.userId]
+                );
+
+                if (memberResult.rowCount === 0) {
+                    console.log(
+                        `User ${socket.userId} is not a member of party ${partyId}`
+                    );
+
+                    return;
+                }
+
+                // Save message to database
+                const messageResult = await pool.query(
+                    `INSERT INTO party_messages
+                        (party_id, user_id, message)
+                    VALUES ($1, $2, $3)
+                    RETURNING id, party_id, user_id, message, created_at`,
+                    [
+                        partyId,
+                        socket.userId,
+                        message.trim()
+                    ]
+                );
+
+                const savedMessage = messageResult.rows[0];
+
+                // Get username
+                const userResult = await pool.query(
+                    `SELECT username
+                    FROM users
+                    WHERE id = $1`,
+                    [socket.userId]
+                );
+
+                // Broadcast saved message
+                io.to(`party:${partyId}`).emit(
+                    "party-message",
+                    {
+                        id: savedMessage.id,
+                        partyId: savedMessage.party_id,
+                        userId: savedMessage.user_id,
+                        username: userResult.rows[0].username,
+                        message: savedMessage.message,
+                        createdAt: savedMessage.created_at
+                    }
+                );
+
+            } catch (error) {
+                console.error(
+                    "Party message error:",
+                    error
+                );
+            }
         });
 
 

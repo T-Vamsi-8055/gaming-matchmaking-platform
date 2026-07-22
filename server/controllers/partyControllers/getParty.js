@@ -35,6 +35,21 @@ export const getParty = async (req, res) => {
             [partyId]
         );
 
+        const messageResult = await pool.query(
+            `SELECT
+                pm.id,
+                pm.message,
+                pm.created_at,
+                u.id AS user_id,
+                u.username
+            FROM party_messages pm
+            JOIN users u
+                ON pm.user_id = u.id
+            WHERE pm.party_id = $1
+            ORDER BY pm.created_at ASC`,
+            [partyId]
+        );
+
         if (result.rowCount === 0) {
             return res.status(404).json({
                 message: "Party not found"
@@ -42,7 +57,8 @@ export const getParty = async (req, res) => {
         }
 
         return res.status(200).json({
-            party: result.rows[0]
+            party: result.rows[0],
+            messages: messageResult.rows
         });
 
     } catch (error) {
