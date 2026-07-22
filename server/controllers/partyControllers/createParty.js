@@ -6,7 +6,7 @@ export const handleCreateParty = async (req, res) => {
 
     try {
         const { partyName, visibility = "PUBLIC" } = req.body;
-        const userId = req.user.userId;
+        const userId = req.user.id;
 
         if (!partyName || partyName.trim().length === 0) {
             return res.status(400).json({

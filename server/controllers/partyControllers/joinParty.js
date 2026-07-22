@@ -6,7 +6,7 @@ export const handleJoinParty = async (req, res) => {
 
     try {
         const { inviteCode } = req.body;
-        const userId = req.user.userId;
+        const userId = req.user.id;
 
         if (!inviteCode) {
             return res.status(400).json({
@@ -52,8 +52,9 @@ export const handleJoinParty = async (req, res) => {
         if (memberResult.rowCount > 0) {
             await client.query("ROLLBACK");
 
-            return res.status(400).json({
-                message: "You are already in this party"
+            return res.status(200).json({
+                message: "You are already in this party",
+                partyId: party.id
             });
         }
 

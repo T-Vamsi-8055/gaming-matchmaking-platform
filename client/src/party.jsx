@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const API_PORT = 3000;
 
@@ -8,7 +9,7 @@ const Party = () => {
     const [partyName, setPartyName] = useState("");
     const [visibility, setVisibility] = useState("PUBLIC");
     const [loading, setLoading] = useState(false);
-
+    const navigate=useNavigate();
     const handleJoinParty = async (e) => {
         e.preventDefault();
 
@@ -20,13 +21,15 @@ const Party = () => {
         setLoading(true);
 
         try {
+            const token = localStorage.getItem("jwt-auth-token");
+
             const response = await fetch(
                 `http://localhost:${API_PORT}/api/join-party`,
                 {
                     method: "POST",
-                    credentials: "include",
                     headers: {
                         "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
                     },
                     body: JSON.stringify({
                         inviteCode: inviteCode.trim(),
@@ -40,6 +43,8 @@ const Party = () => {
                 alert(data.message || "Failed to join party");
                 return;
             }
+
+            navigate(`/party/${data.partyId}`);
 
             alert("Joined party successfully");
 
@@ -64,13 +69,15 @@ const Party = () => {
         setLoading(true);
 
         try {
+            const token = localStorage.getItem("jwt-auth-token");
+
             const response = await fetch(
                 `http://localhost:${API_PORT}/api/create-party`,
                 {
                     method: "POST",
-                    credentials: "include",
                     headers: {
                         "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
                     },
                     body: JSON.stringify({
                         partyName: partyName.trim(),
@@ -88,10 +95,11 @@ const Party = () => {
 
             alert("Party created successfully");
 
-            console.log("Created party:", data);
+           console.log("Created party:", data);
 
-            // Later you can navigate to the party room here.
-            // navigate(`/party/${data.party.id}`);
+            navigate(`/party/${data.party.id}`);
+
+          
 
         } catch (err) {
             console.error("Error creating party:", err);

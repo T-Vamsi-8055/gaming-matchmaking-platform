@@ -15,10 +15,16 @@ const PartyRoom = () => {
     useEffect(() => {
         const fetchParty = async () => {
             try {
+                console.log("Fetching party:", id);
+                const token = localStorage.getItem("jwt-auth-token");
+
                 const response = await fetch(
                     `http://localhost:${API_PORT}/api/party/${id}`,
                     {
-                        credentials: "include",
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
                     }
                 );
 

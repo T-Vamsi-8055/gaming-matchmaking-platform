@@ -25,7 +25,7 @@ app.use(cookieParser());
 app.use("/api/auth",authRoute);
 app.use("/api/profile",profileRoute);
 app.use("/api/game-data",gameDataRoute);
-app.use("/api/party",partyRoutes);
+app.use("/api",partyRoutes);
 
 const server = createServer(app);
 initializeSocket(server);

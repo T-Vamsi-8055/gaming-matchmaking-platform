@@ -6,7 +6,7 @@ export const leaveParty = async (req, res) => {
 
     try {
         const { partyId } = req.params;
-        const userId = req.user.userId;
+        const userId = req.user.id;
 
         await client.query("BEGIN");
 
