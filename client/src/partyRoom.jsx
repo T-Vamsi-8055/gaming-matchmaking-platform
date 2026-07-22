@@ -100,12 +100,20 @@ const PartyRoom = () => {
             </p>
 
             <h2>Members</h2>
-
+            
             {party.members.map((member) => (
                 <div key={member.userId}>
                     {member.username}
+
+                    {member.userId === party.leader_id && (
+                        <span> 👑 Host</span>
+                    )}
                 </div>
             ))}
+
+            
+
+            
 
             <hr />
 
