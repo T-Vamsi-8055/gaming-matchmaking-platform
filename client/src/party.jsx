@@ -10,6 +10,8 @@ const Party = () => {
     const [visibility, setVisibility] = useState("PUBLIC");
     const [loading, setLoading] = useState(false);
     const navigate=useNavigate();
+    const [myParties, setMyParties] = useState([]);
+
     const handleJoinParty = async (e) => {
         e.preventDefault();
 
@@ -108,6 +110,41 @@ const Party = () => {
             setLoading(false);
         }
     };
+    useEffect(() => {
+        const fetchMyParties = async () => {
+            try {
+                const token = localStorage.getItem("jwt-auth-token");
+
+                const response = await fetch(
+                    `http://localhost:${API_PORT}/api/my-parties`,
+                    {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message || "Failed to fetch parties"
+                    );
+                }
+
+                setMyParties(data.parties);
+
+            } catch (error) {
+                console.error(
+                    "Error fetching my parties:",
+                    error
+                );
+            }
+        };
+
+        fetchMyParties();
+    }, []);
 
     return (
         <div>
@@ -185,6 +222,35 @@ const Party = () => {
                         {loading ? "Creating..." : "Create Party"}
                     </button>
                 </form>
+            </div>
+            <div>
+                <h2>My Parties</h2>
+
+                {myParties.length === 0 ? (
+                    <p>You are not in any parties.</p>
+                ) : (
+                    myParties.map((party) => (
+                                        <div key={party.id}>
+                        <h3>{party.party_name}</h3>
+
+                        <p>
+                            Members: {party.member_count}
+                        </p>
+
+                        <p>
+                            Visibility: {party.visibility}
+                        </p>
+
+                        <button
+                            onClick={() =>
+                                navigate(`/party/${party.id}`)
+                            }
+                        >
+                            Enter Party
+                        </button>
+                    </div>
+                    ))
+                )}
             </div>
         </div>
     );
