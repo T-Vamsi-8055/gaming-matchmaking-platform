@@ -22,7 +22,7 @@ route.post("/leave-party",
 
 route.get("/party/:id", verifyJWT, getParty);
 
-router.get(
+route.get(
     "/my-parties",
     verifyJWT,
     getMyParties

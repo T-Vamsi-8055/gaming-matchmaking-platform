@@ -133,6 +133,24 @@ export function initializeSocket(server) {
         });
 
         socket.on("send-party-message", async ({ partyId, message }) => {
+            console.log(
+            "SEND PARTY MESSAGE EVENT RECEIVED"
+        );
+
+        console.log(
+            "User:",
+            socket.userId
+        );
+
+        console.log(
+            "Party:",
+            partyId
+        );
+
+        console.log(
+            "Message:",
+            message
+        );
             try {
                 if (!message || !message.trim()) {
                     return;
