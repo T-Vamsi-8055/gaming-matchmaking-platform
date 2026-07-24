@@ -5,7 +5,7 @@ import queue from "./queueClass.js"
 import queueObj from "./queueObjClass.js"
 import { startMatch,FindGameScore,teamDivider } from "./GameLogic.js";
 import { finalMatches } from "./GameLogic.js";
-
+import partyClass from "./partyClass.js";
 
 
 
@@ -78,6 +78,32 @@ export function initializeSocket(server) {
         })
         
         socket.on("join-queue",async (game,queueType)=>{
+            let found = false;
+            
+            try{
+            for(let i=0;i<lengthOfGames && !found;i++){
+                for(let j=0;j<lengthOfQueueTypes;j++){
+                    if(grid[i][j].getGameName()==game && grid[i][j].getQueueType()==queueType){
+
+                        let newQueueObj=new queueObj();
+                        newQueueObj.setJoinTime(Date.now());
+                        const gamerId=await pool.query("select gamer_id from profiles where user_id=$1",[socket.userId]);
+                        const gameDetails=await pool.query("select * from mock_game_data where gamer_id=$1 and game_name=$2",[gamerId.rows[0].gamer_id,game]);
+                        newQueueObj.setGameScore(FindGameScore(gameDetails.rows[0]));
+                        newQueueObj.setUserId(socket.userId);
+                        newQueueObj.setQueueType(queueType);
+                        const singlePartyObj=new partyClass(`user ${socket.userId}`,queueType,[newQueueObj]);
+                        grid[i][j].addPartyToQueue(singlePartyObj);
+                        found=true;
+                        console.log("Socket joined with userId",socket.userId,game,queueType);
+
+                        break;
+                    }
+                }
+            }
+        }catch(err){console.log(err)}
+        })
+        socket.on("join-queue-party",async (game,queueType)=>{
             let found = false;
 
             try{
