@@ -63,10 +63,6 @@ const QueueScreen = () => {
         
         {/* Top Badges */}
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 text-xs font-mono tracking-widest uppercase">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-            MATCHMAKING RADAR ACTIVE
-          </div>
           <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-wider text-white">
             SEARCHING FOR MATCH
           </h1>
