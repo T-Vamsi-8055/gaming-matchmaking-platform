@@ -28,23 +28,7 @@ export function FindGameScore(player){
     );
 
 }
-export function teamDivider(finalArray){
-    if(finalArray[0].getQueueType()==1){
-        return [
-            [finalArray[0]],[ finalArray[2]],
-            [finalArray[1]],[finalArray[3]]
-        ];
-    }
 
-    if(finalArray[0].getQueueType()==2){
-        return [
-            [finalArray[0], finalArray[2]],
-            [finalArray[1], finalArray[3]]
-        ];
-    }
-
-    return [];
-}
 
 export function startMatch(gameMatch,queueType,io){
     if(queueType==1){
@@ -78,3 +62,6 @@ export function penaltyRange(time){
 
 export const matchSize=4;
 export let finalMatches=[];
+
+export const lengthOfGames = 5;
+export const lengthOfQueueTypes = 3;

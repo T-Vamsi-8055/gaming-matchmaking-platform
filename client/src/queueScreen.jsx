@@ -7,7 +7,7 @@ const queueScreen = () => {
   const navigate=useNavigate();
   const location=useLocation();
   const handleCancelBtn=()=>{
-    socket.emit("exit-queue",location.state.game,location.state.queueType);
+    socket.emit("exit-party-queue",location.state.game,location.state.queueType);
     navigate("/");
   }
   
@@ -19,7 +19,10 @@ const queueScreen = () => {
     };
 
     socket.on("joined-match", handleJoinedMatch);
-
+    socket.on("exit-party-queue",(userId)=>{
+      alert("User click exit button: ",userId);
+      navigate("/");
+    })
     return () => {
         socket.off("joined-match", handleJoinedMatch);
     };

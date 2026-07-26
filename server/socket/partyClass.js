@@ -1,4 +1,5 @@
-class partyClass{
+
+export default class partyClass{
     constructor(partyId,queueType,queueObjArray,joinTime,gameScore){
         this.partyId=partyId;
         this.queueType=queueType;

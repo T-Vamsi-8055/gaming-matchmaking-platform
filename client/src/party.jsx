@@ -1,7 +1,7 @@
 
 import React, { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { socket } from "./socket";
 const API_PORT = 3000;
 
 const Party = () => {
@@ -94,6 +94,7 @@ const Party = () => {
                 alert(data.message || "Failed to create party");
                 return;
             }
+            socket.emit("created-party",data.party.id);
 
             alert("Party created successfully");
 

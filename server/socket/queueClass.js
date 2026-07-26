@@ -1,5 +1,5 @@
 import queueObj from "./queueObjClass.js";
-import {penaltyRange, teamDivider} from "./GameLogic.js";
+import {penaltyRange} from "./GameLogic.js";
 import { matchSize,finalMatches } from "./GameLogic.js";
 
 
@@ -34,71 +34,90 @@ export default class queue{
         
         
     
-    checkBestMatch(){
-        for(let i=0;i<(this.partyQueueArray.length-matchSize+1);i++){
-            let maxTime=0;
-            for(let k=i;k<i+matchSize;k++){
-                const presentUserTime=Date.now()-this.partyQueueArray[k].getJoinTime();
-                if(presentUserTime>maxTime)maxTime=presentUserTime;
-            }
-            const penaltyRangeValue=penaltyRange(maxTime);
-            let matchConditions=false;
-            for(let k=i;k<i+matchSize-1;k++){
-                if((this.partyQueueArray[k].getGameScore()-this.partyQueueArray[k+1].getGameScore())<penaltyRangeValue){
-                    matchConditions=true;
-                }else{ matchConditions=false;break;}
-            }
-            if(matchConditions){    
-                let finalArray=[];
-                for(let k=i;k<i+matchSize;k++){
-                    finalArray.push(this.partyQueueArray[k])
-                }
-                const finalDividedArray=teamDivider(finalArray);
-                finalMatches.push(finalDividedArray)
-                this.deleteMatchUsersFromQueue(this.partyQueueArray[i].getUserId());
-            }
+    // checkBestMatch(){
+    //     for(let i=0;i<(this.partyQueueArray.length-matchSize+1);i++){
+    //         let maxTime=0;
+    //         for(let k=i;k<i+matchSize;k++){
+    //             const presentUserTime=Date.now()-this.partyQueueArray[k].getJoinTime();
+    //             if(presentUserTime>maxTime)maxTime=presentUserTime;
+    //         }
+    //         const penaltyRangeValue=penaltyRange(maxTime);
+    //         let matchConditions=false;
+    //         for(let k=i;k<i+matchSize-1;k++){
+    //             if((this.partyQueueArray[k].getGameScore()-this.partyQueueArray[k+1].getGameScore())<penaltyRangeValue){
+    //                 matchConditions=true;
+    //             }else{ matchConditions=false;break;}
+    //         }
+    //         if(matchConditions){    
+    //             let finalArray=[];
+    //             for(let k=i;k<i+matchSize;k++){
+    //                 finalArray.push(this.partyQueueArray[k])
+    //             }
+    //             const finalDividedArray=teamDivider(finalArray);
+    //             finalMatches.push(finalDividedArray)
+    //             this.deleteMatchUsersFromQueue(this.partyQueueArray[i].getUserId());
+    //         }
             
-        }
-    }
-    checkFeasibleMatches(){
-        this.backTrack(this.partyQueueArray,[],0);
-    }
-    backTrack(array,curr,startIndex){
-        let currSize=0;
-        curr.forEach((party)=>{
-            currSize+=party.getLength();
-        })
-        if(currSize>matchSize)return;
-        if(currSize==matchSize){
-            let maxTime=0;
-            curr.forEach(party=>{
-                const waitingTime = Date.now() - party.getJoinTime();
+    //     }
+    // }
+    checkFeasibleMatches() {
+    return this.backTrack(this.partyQueueArray, [], 0);
+}
 
-                if(waitingTime > maxTime){
-                    maxTime = waitingTime;
+backTrack(array, curr, startIndex) {
+    let currSize = 0;
+
+    curr.forEach((party) => {
+        currSize += party.getLength();
+    });
+
+    if (currSize > matchSize) {
+        return null;
+    }
+
+    if (currSize === matchSize) {
+        let maxTime = 0;
+
+        curr.forEach((party) => {
+            const waitingTime = Date.now() - party.getJoinTime();
+
+            if (waitingTime > maxTime) {
+                maxTime = waitingTime;
+            }
+        });
+
+        const penaltyRangeValue = penaltyRange(maxTime);
+
+        for (let i = 0; i < curr.length; i++) {
+            for (let j = i + 1; j < curr.length; j++) {
+                if (
+                    Math.abs(
+                        curr[i].getGameScore() -
+                        curr[j].getGameScore()
+                    ) > penaltyRangeValue
+                ) {
+                    return null;
                 }
-            })
-            const penaltyRangeValue=penaltyRange(maxTime);
-            let matchConditions=true;
-            curr.forEach(party=>{
-                if(matchConditions){
-                curr.forEach(party2=>{
-                    if(party2.getGameScore()-party.getGameScore()>penaltyRangeValue)matchConditions=true;
-                    else{matchConditions=false;break;}
-                })}
-            })
-            if(matchConditions){    
-                
-                finalMatches.push(curr)
-                this.deleteMatchPartiesFromQueue(curr);
             }
         }
-        for(let i=startIndex;i<array.length;i++){
-            curr.push(array[i]);
-            this.backTrack(array,i+1,curr);
-            curr.pop();
-        }
+
+        return [...curr];
     }
+
+    for (let i = startIndex; i < array.length; i++) {
+        curr.push(array[i]);
+
+        const result = this.backTrack(array, curr, i + 1);
+
+        if (result) {
+            return result;
+        }
+
+        curr.pop();
+    }
+
+    return null;
+}
     getGameName(){return this.gameName;}
     getQueueType(){return this.queueType;}
     getNumberOfParties(){return this.partyQueueArray.length}
