@@ -6,10 +6,11 @@ const QueueScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const game = location.state?.game || 'Match';
   const queueType = location.state?.queueType || '1';
-
+  const partyId=location.state?.partyId || "";
   const getQueueLabel = (type) => {
     if (type === '1' || type === 1) return 'Solo Queue (1v1)';
     if (type === '2' || type === 2) return 'Duo Queue (2v2)';
@@ -18,7 +19,6 @@ const QueueScreen = () => {
   };
 
   useEffect(() => {
-    ensureSocketConnected();
 
     const timer = setInterval(() => {
       setSecondsElapsed((prev) => prev + 1);
@@ -32,21 +32,36 @@ const QueueScreen = () => {
         }
       });
     };
+    
 
-    socket.on("joined-match", handleJoinedMatch);
-    socket.on("exit-party-queue",(userId)=>{
-      alert("User click exit button: ",userId);
-      navigate("/");
-    })
+    const handleExitPartyQueue = (userId) => {
+      alert(`User click exit button: ${userId}`);
+      navigate(`/${location.state?.from}`);
+    };
+
+    const setup = async () => {
+      await ensureSocketConnected();
+
+      socket.on("joined-match", handleJoinedMatch);
+      socket.on("exit-party-queue", handleExitPartyQueue);
+    };
+
+    setup();
     return () => {
       clearInterval(timer);
       socket.off("joined-match", handleJoinedMatch);
+      socket.off("exit-party-queue", handleExitPartyQueue);
+
     };
-  }, [navigate]);
+  }, [navigate,location.state?.from]);
 
   const handleCancelBtn = () => {
-    socket.emit("exit-queue", game, queueType);
-    navigate("/");
+    if (isCancelling) return;
+
+    setIsCancelling(true);
+    if(partyId)socket.emit("exit-party-queue", partyId,game, queueType);
+    else {
+      socket.emit("exit-party-queue", "",game, queueType)}
   };
 
   const formatTime = (totalSecs) => {
@@ -108,10 +123,10 @@ const QueueScreen = () => {
 
         {/* Cancel Queue Action */}
         <button
-          onClick={handleCancelBtn}
+          onClick={handleCancelBtn} disabled={isCancelling}
           className="px-8 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/60 text-red-400 hover:text-red-300 font-bold uppercase tracking-widest text-xs transition-all duration-200 shadow-lg active:scale-95 cursor-pointer"
         >
-          Cancel Queue
+          {isCancelling ? "Cancelling..." : "Cancel Queue"}
         </button>
 
       </div>

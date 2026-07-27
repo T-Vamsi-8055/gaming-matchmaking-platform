@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "./socket.js";
+import { useNavigate } from "react-router-dom";
 
 const API_PORT = 3000;
 
@@ -17,10 +18,10 @@ const PartyRoom = () => {
     leaderId: null,
   });
   const [userId, setUserId] = useState(null);
-
+  const navigate=useNavigate();
   useEffect(() => {
     if (!id) return;
-
+    console.log("his");
     const fetchParty = async () => {
       try {
         const token = localStorage.getItem("jwt-auth-token");
@@ -42,6 +43,8 @@ const PartyRoom = () => {
         const partyData = await partyResponse.json();
         const meData = await meResponse.json();
 
+        console.log(partyData.party,meData);
+
         if (!partyResponse.ok) {
           alert(partyData.message || "Failed to load party");
           return;
@@ -51,11 +54,10 @@ const PartyRoom = () => {
           alert(meData.message || "Failed to load user details");
           return;
         }
-
+        console.log(partyData);
         setUserId(meData.id);
         setParty(partyData.party);
         setMessages(partyData.messages || []);
-
         /*
          * The party object should ideally contain:
          *
@@ -67,15 +69,8 @@ const PartyRoom = () => {
          * the socket events below will populate them after
          * another member changes them.
          */
-        if (partyData.party.game) {
-        }
-
-        if (partyData.party.queue_type) {
-        }
-
-        if (typeof partyData.party.start_count === "number") {
-          setStartClicks(partyData.party.start_count);
-        }
+        socket.emit("open-party",partyData.party.id);
+        
       } catch (error) {
         console.error("Error fetching party:", error);
       }
@@ -97,10 +92,15 @@ const PartyRoom = () => {
 
     const handlePartyReady = (data) => {
       console.log("Party is ready for matchmaking:", data);
-      navigate("/queueScreen");
+      const game=livePartyState.game;
+      const queueType=livePartyState.queueType;
+      navigate("/queueScreen",{ state: {  game, queueType,partyId: id,from:`party/${id}` } });
     };
 
     const handleConnectError = (error) => {
+      console.error("Socket connection error:", error.message);
+    };
+    const handleConnectSystemError = (error) => {
       console.error("Socket connection error:", error.message);
     };
 
@@ -108,17 +108,21 @@ const PartyRoom = () => {
       console.error("Party error:", error.message);
     };
 
+    const handleChangeState = (state) => {
+      setLivePartyState(state);
+      console.log(state);
+    };
+
     socket.on("connect", joinPartyRoom);
 
     socket.on("party-message", handleMessage);
 
-    socket.on("changed-party-state", (state) => {
-      setLivePartyState(state);
-    });
+    socket.on("changed-party-state",handleChangeState );
 
     socket.on("party-ready-for-matchmaking", handlePartyReady);
 
-    socket.on("connect_error", handleConnectError);
+    socket.on("connect_error", handleConnectSystemError);
+    socket.on("connect-error", handleConnectError);
 
     if (!socket.connected) {
       const token = localStorage.getItem("jwt-auth-token");
@@ -139,11 +143,12 @@ const PartyRoom = () => {
 
       socket.off("party-message", handleMessage);
 
-      socket.off("changed-party-state");
+      socket.off("changed-party-state",handleChangeState);
 
       socket.off("party-ready-for-matchmaking", handlePartyReady);
 
-      socket.off("connect_error", handleConnectError);
+      socket.off("connect_error", handleConnectSystemError);
+      socket.off("connect-error", handleConnectError);
       socket.off("party-error", handlePartyError);
 
       if (socket.connected) {
@@ -169,11 +174,16 @@ const PartyRoom = () => {
     setMessage("");
   };
 
-  const handleStartMatch = () => {
+  const handleStartMatch = (e) => {
     if (!party) {
       return;
     }
-
+    setLivePartyState(prev=>({...prev,[e.target.name]:e.target.value}))
+    const temp={...livePartyState,[e.target.name]:e.target.value};
+    socket.emit("change-party-state",{
+        partyId:id,
+        partyState:temp
+    })
 
 
     socket.emit("party-click-start", {
@@ -185,15 +195,14 @@ const PartyRoom = () => {
 
   
 
-  const isHost = Number(party.leader_id) === Number(userId);
-  const allMembersReady = livePartyState.readyUsers.length==livePartyState.members.length;
 
   const handleLivePartyStateChange=(e)=>{
-    livePartyState[e.target.name]=e.targe.value;
-
+    
+    setLivePartyState(prev=>({...prev,[e.target.name]:e.target.value}))
+    const temp={...livePartyState,[e.target.name]:e.target.value};
     socket.emit("change-party-state",{
         partyId:id,
-        partyState:livePartyState
+        partyState:temp
     })
   }
 
@@ -232,6 +241,11 @@ const PartyRoom = () => {
   if (!party) {
     return <div>Loading party...</div>;
   }
+  
+  console.log(livePartyState);
+  const isHost = Number(party.leader_id) === Number(userId);
+  const allMembersReady = livePartyState.readyUsers.length==livePartyState.members.length;
+
   return (
     <div>
       <h1>{party.party_name}</h1>
@@ -307,7 +321,7 @@ const PartyRoom = () => {
         <h3>Party State: {allMembersReady ? "Ready" : "Waiting"}</h3>
 
         <h3>
-          Ready: {livePartyState.readyUsers.length}/{party.members.length}
+          Ready: {livePartyState.readyUsers.length}/{livePartyState.members.length}
         </h3>
 
         <button onClick={handleStartMatch} disabled={allMembersReady}>

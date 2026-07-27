@@ -151,9 +151,22 @@ const home = () => {
               }
               return acc;
             }, {});
+
+
             setGameAnalytics(analyticsMap);
           }
         }
+
+        const handleJoinedUserQueue = ({userId,game,queueType}) => {
+              navigate("/queueScreen",{
+                state:{
+                  game:game,queueType:queueType,partyId:"",from:""
+                }
+              });
+            };
+
+        socket.on("joined-user-queue", handleJoinedUserQueue);
+        
       } catch (error) {
         console.error("Auth verification failed:", error);
         navigate("/auth");
@@ -180,12 +193,8 @@ const home = () => {
   }, [isQueueing]);
   const handleFindMatch=() => {
     setIsQueueing(!isQueueing);
-    socket.emit("join-queue",game,queueType);
-    navigate("/queueScreen",{
-      state:{
-        game:game,queueType:queueType
-      }
-    });
+    socket.emit("join-user-queue",game,queueType);
+    
   }
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);

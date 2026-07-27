@@ -1,5 +1,9 @@
-import {lengthOfGames,lengthOfQueueTypes} from "../GameLogic.js"
+import {lengthOfGames,lengthOfQueueTypes,FindGameScore} from "../GameLogic.js"
 import { pool } from "../../config/db.js";
+import queueObj from "../queueObjClass.js";
+import partyClass from "../partyClass.js";
+
+
 
 // --------------------------------------------------
 // HELPER FUNCTIONS
@@ -48,7 +52,7 @@ export async function getPartyLeader(partyId) {
 
 export async function createPartyMatchmakingObject(partyId, game, queueType, members) {
   const queueObjects = [];
-
+  const gameScores=[];
   for (const member of members) {
     const profileResult = await pool.query(
       `
@@ -84,20 +88,31 @@ export async function createPartyMatchmakingObject(partyId, game, queueType, mem
     const newQueueObj = new queueObj();
 
     newQueueObj.setJoinTime(Date.now());
-
-    newQueueObj.setGameScore(FindGameScore(gameData));
-
+    const gameScore=FindGameScore(gameData);
+    newQueueObj.setGameScore(gameScore);
+    gameScores.push(gameScore);
     newQueueObj.setUserId(member.user_id);
 
     newQueueObj.setQueueType(Number(queueType));
 
     queueObjects.push(newQueueObj);
   }
-
+  const sumGameScores=gameScores.reduce((sum,each)=>(each+sum));
+  const avgGameScore=sumGameScores/gameScores.length;
+  if(members.length!=1)
   return new partyClass(
     `party:${partyId}`,
     Number(queueType),
     queueObjects,
     Date.now(),
+    avgGameScore
+  );
+
+  return new partyClass(
+    `user:${partyId}`,
+    Number(queueType),
+    queueObjects,
+    Date.now(),
+    avgGameScore
   );
 }

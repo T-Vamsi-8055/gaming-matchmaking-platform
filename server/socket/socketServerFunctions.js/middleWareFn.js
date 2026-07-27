@@ -1,4 +1,4 @@
-import { jwtVerify } from "../config/jwt.js";
+import { jwtVerify } from "../../config/jwt.js";
 
 
 export function middleWareFn(socket,next){
