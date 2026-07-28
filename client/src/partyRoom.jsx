@@ -93,8 +93,8 @@ const PartyRoom = () => {
 
     const handlePartyReady = (data) => {
       console.log("Party is ready for matchmaking:", data);
-      const game=livePartyState.game;
-      const queueType=livePartyState.queueType;
+      const game=data.game;
+      const queueType=data.queueType;
       const state= {  game, queueType,partyId: id,from:`party/${id}` };
       console.log(state);
       navigate("/queueScreen",{ state: {  game, queueType,partyId: id,from:`party/${id}` } });
@@ -155,7 +155,7 @@ const PartyRoom = () => {
       socket.off("connect-error", handleConnectError);
       socket.off("party-error", handlePartyError);
 
-      if (socket.connected) {
+      if (!socket.connected) {
         socket.emit("leave-party-room", id);
       }
     };

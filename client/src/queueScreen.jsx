@@ -9,7 +9,7 @@ const QueueScreen = () => {
   const [isCancelling, setIsCancelling] = useState(false);
 
   const game = location.state?.game || 'Match';
-  const queueType = location.state?.queueType || '1';
+  const queueType = location.state?.queueType || '0';
   const partyId=location.state?.partyId || "";
   const getQueueLabel = (type) => {
     if (type === '1' || type === 1) return 'Solo Queue (1v1)';
@@ -57,7 +57,7 @@ const QueueScreen = () => {
 
   const handleCancelBtn = () => {
     if (isCancelling) return;
-    console.log(location);
+    console.log('location',location);
     setIsCancelling(true);
     if(partyId)socket.emit("exit-party-queue", partyId,game, queueType);
     else {

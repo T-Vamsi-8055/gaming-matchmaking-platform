@@ -142,7 +142,13 @@ if (!newState.members.includes(socket.userId)) newState.members.push(socket.user
           state.leaderId=response.rows.leader_id;
           socket.to(`party:${partyId}`).emit("changed-party-state", state);
         }
-      console.log(`User ${socket.userId} left party ${partyId}`);
+        const j = state.readyMembers.indexOf(socket.userId);
+        if (i !== -1) {
+          state.readyMembers.splice(i, 1);
+          
+          socket.to(`party:${partyId}`).emit("changed-party-state", state);
+        }
+      console.log(`User ${socket.userId} left party ${partyId}`,livePartyState);
     });
 
     // --------------------------------------------------
@@ -290,11 +296,9 @@ if (!newState.members.includes(socket.userId)) newState.members.push(socket.user
     socket.on("party-click-start", async ({ partyId }) => {
       try {
         const state=livePartyState.get(partyId);
-        if(state.readyMembers.includes(socket.userId))return;
-        state.readyMembers.push(socket.userId);
         const readyMembers=state.readyMembers.length;
         const totalMembers=state.members.length;
-        console.log(livePartyState)
+        console.log("in the party click start",livePartyState)
 
 
         io.to(`party:${partyId}`).emit("changed-party-state",state);
@@ -383,7 +387,7 @@ if (!newState.members.includes(socket.userId)) newState.members.push(socket.user
 
     socket.on("exit-party-queue", async (partyId, game, queueType) => {
       try {
-        console.log("not party");
+        console.log("party");
 
         const matchmakingQueue = findQueue(game, queueType,grid);
         console.log(game,queueType);
@@ -401,7 +405,9 @@ if (!newState.members.includes(socket.userId)) newState.members.push(socket.user
         const members = livePartyState.get(partyId).members
         const lengthOfParty=livePartyState.get(partyId).members;
         for (const member of members) {
-            io.to(String(member.getUserId())).emit("exit-party-queue", socket.userId);
+            let userId=member;
+            if(!typeof(member)==Number)userId=member.getUserId();
+            io.to(String(userId)).emit("exit-party-queue", socket.userId);
           }
         }else{
           console.log("not party");
