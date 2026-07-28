@@ -16,7 +16,7 @@ route.post("/create-party",verifyJWT,
     handleCreateParty
 )
 
-route.post("/leave-party",
+route.post("/leave-party/:id",verifyJWT,
     leaveParty
 )
 

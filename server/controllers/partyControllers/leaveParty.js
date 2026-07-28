@@ -4,7 +4,7 @@ export const leaveParty = async (req, res) => {
     const client = await pool.connect();
 
     try {
-        const { partyId } = req.params;
+        const partyId= req.params.id;
         const userId = req.user.id;
 
         await client.query("BEGIN");

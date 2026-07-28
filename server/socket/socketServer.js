@@ -131,13 +131,15 @@ if (!newState.members.includes(socket.userId)) newState.members.push(socket.user
     // LEAVE PARTY ROOM
     // --------------------------------------------------
 
-    socket.on("leave-party-room", (partyId) => {
+    socket.on("leave-party-room", async (partyId) => {
       if(!livePartyState.get(partyId))return;
       socket.leave(`party:${partyId}`);
       const state=livePartyState.get(partyId);
         const i = state.members.indexOf(socket.userId);
         if (i !== -1) {
           state.members.splice(i, 1);
+          const response = await pool.query("select leader_id from parties where id=$1",[partyId]);
+          state.leaderId=response.rows.leader_id;
           socket.to(`party:${partyId}`).emit("changed-party-state", state);
         }
       console.log(`User ${socket.userId} left party ${partyId}`);

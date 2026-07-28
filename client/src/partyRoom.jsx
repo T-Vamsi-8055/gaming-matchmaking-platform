@@ -10,10 +10,11 @@ const PartyRoom = () => {
   const [party, setParty] = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [isReady,setIsReady]=useState(false);
   const [livePartyState, setLivePartyState] = useState({
     game: "",
     queueType: "",
-    readyUsers: [],
+    readyMembers: [],
     members: [],
     leaderId: null,
   });
@@ -94,6 +95,8 @@ const PartyRoom = () => {
       console.log("Party is ready for matchmaking:", data);
       const game=livePartyState.game;
       const queueType=livePartyState.queueType;
+      const state= {  game, queueType,partyId: id,from:`party/${id}` };
+      console.log(state);
       navigate("/queueScreen",{ state: {  game, queueType,partyId: id,from:`party/${id}` } });
     };
 
@@ -110,6 +113,7 @@ const PartyRoom = () => {
 
     const handleChangeState = (state) => {
       setLivePartyState(state);
+      if(state.readyMembers.includes(userId))setIsReady(true);
       console.log(state);
     };
 
@@ -178,17 +182,45 @@ const PartyRoom = () => {
     if (!party) {
       return;
     }
-    setLivePartyState(prev=>({...prev,[e.target.name]:e.target.value}))
-    const temp={...livePartyState,[e.target.name]:e.target.value};
+    try{
+    if(livePartyState.readyMembers.includes(userId)){
+
+      const newState=livePartyState.readyMembers;
+      const index=newState.indexOf(userId);
+      newState.splice(index,1);
+            console.log("fine bhai",newState)
+
+      setLivePartyState(prev=>({...prev,readyMembers:newState}));
+      setIsReady(false);
+      const temp={...livePartyState,readyMembers:newState};
+      socket.emit("change-party-state",{
+          partyId:id,
+          partyState:temp
+      })
+      return;
+    }
+
+    if(!livePartyState.game || !livePartyState.queueType)return;
+    const newState=livePartyState.readyMembers;
+    newState.push(userId);
+    setIsReady(true);
+    console.log("atleast it comes here",livePartyState)
+
+    setLivePartyState(prev=>({...prev,readyMembers:newState}));
+    const temp={...livePartyState,readyMembers:newState};
     socket.emit("change-party-state",{
         partyId:id,
         partyState:temp
     })
+    console.log("atleast it comes here",livePartyState)
 
 
     socket.emit("party-click-start", {
       partyId: id,
     });
+    }catch(error){
+      console.error(error);
+    }
   };
 
 
@@ -210,12 +242,13 @@ const PartyRoom = () => {
     const confirmLeave = window.confirm("Leave this party?");
 
     if (!confirmLeave) return;
+    console.log("atleast it comes here")
 
     try {
       const token = localStorage.getItem("jwt-auth-token");
 
       const response = await fetch(
-        `http://localhost:${API_PORT}/api/party/${id}/leave`,
+        `http://localhost:${API_PORT}/api/leave-party/${id}`,
         {
           method: "POST",
           headers: {
@@ -244,7 +277,8 @@ const PartyRoom = () => {
   
   console.log(livePartyState);
   const isHost = Number(party.leader_id) === Number(userId);
-  const allMembersReady = livePartyState.readyUsers.length==livePartyState.members.length;
+  console.log(livePartyState,livePartyState.readyMembers);
+  const allMembersReady = livePartyState.readyMembers.length==livePartyState.members.length;
 
   return (
     <div>
@@ -321,11 +355,11 @@ const PartyRoom = () => {
         <h3>Party State: {allMembersReady ? "Ready" : "Waiting"}</h3>
 
         <h3>
-          Ready: {livePartyState.readyUsers.length}/{livePartyState.members.length}
+          Ready: {livePartyState.readyMembers.length}/{livePartyState.members.length}
         </h3>
 
         <button onClick={handleStartMatch} disabled={allMembersReady}>
-          {allMembersReady ? "Everyone Ready" : "Start Match"}
+          {(allMembersReady && isReady) ? "Everyone Ready" :(!allMembersReady && isReady)?"Exit Match": "Start Match"}
         </button>
       </div>
 

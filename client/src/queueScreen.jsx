@@ -35,7 +35,7 @@ const QueueScreen = () => {
     
 
     const handleExitPartyQueue = (userId) => {
-      alert(`User click exit button: ${userId}`);
+      console.log("Exiting party queue");
       navigate(`/${location.state?.from}`);
     };
 
@@ -57,7 +57,7 @@ const QueueScreen = () => {
 
   const handleCancelBtn = () => {
     if (isCancelling) return;
-
+    console.log(location);
     setIsCancelling(true);
     if(partyId)socket.emit("exit-party-queue", partyId,game, queueType);
     else {
