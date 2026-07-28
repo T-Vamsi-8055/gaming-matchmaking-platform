@@ -124,7 +124,7 @@ if (!newState.members.includes(socket.userId)) newState.members.push(socket.user
     });
     socket.on("created-party",(partyId)=>{
         if (!livePartyState.has(partyId)) {
-        livePartyState.set(partyId, { game: "", queueType: "", members: [socket.userId], readyMembers: [] });
+        livePartyState.set(partyId, { game: "", queueType: "", members: [socket.userId], readyMembers: [] , leaderId:socket.userId});
         }
     })
     // --------------------------------------------------
@@ -223,8 +223,12 @@ if (!newState.members.includes(socket.userId)) newState.members.push(socket.user
     });
     socket.on("open-party",(partyId)=>{
       
-      if(livePartyState.has(partyId))io.to(`party:${partyId}`).emit("changed-party-state", livePartyState.get(partyId));
-      console.log( livePartyState);
+      if(livePartyState.has(partyId)){
+        io.to(`party:${partyId}`).emit("changed-party-state", livePartyState.get(partyId));
+      console.log( livePartyState);}
+      else {
+        livePartyState.set(partyId, { game: "", queueType: "", members: [socket.userId], readyMembers: [] ,leaderId:socket.userId});
+      }
 
     })
 
@@ -258,7 +262,7 @@ if (!newState.members.includes(socket.userId)) newState.members.push(socket.user
             members,
           );
           console.log(partyObj);
-          livePartyState.set(`user:${userId}`,{game,queueType,readyMembers:[userId],members:[userId]});
+          livePartyState.set(`user:${userId}`,{game,queueType,readyMembers:[userId],members:[userId],leaderId:userId});
           matchmakingQueue.addPartyToQueue(partyObj);
 
           console.log(`User ${userId} entered matchmaking queue`, {
@@ -284,9 +288,9 @@ if (!newState.members.includes(socket.userId)) newState.members.push(socket.user
     socket.on("party-click-start", async ({ partyId }) => {
       try {
         const state=livePartyState.get(partyId);
-        if(state.readyUsers.includes(socket.userId))return;
-        state.readyUsers.push(socket.userId);
-        const readyMembers=state.readyUsers.length;
+        if(state.readyMembers.includes(socket.userId))return;
+        state.readyMembers.push(socket.userId);
+        const readyMembers=state.readyMembers.length;
         const totalMembers=state.members.length;
         console.log(livePartyState)
 
@@ -370,6 +374,10 @@ if (!newState.members.includes(socket.userId)) newState.members.push(socket.user
     // --------------------------------------------------
     // EXIT PARTY QUEUE
     // --------------------------------------------------
+    socket.on("created-party",(partyId)=>{
+        livePartyState.set(partyId, { game: "", queueType: "", members: [socket.userId], readyMembers: [] ,leaderId:socket.userId});
+
+    })
 
     socket.on("exit-party-queue", async (partyId, game, queueType) => {
       try {
