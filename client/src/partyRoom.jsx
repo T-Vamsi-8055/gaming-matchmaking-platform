@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { socket } from "./socket.js";
+import { socket } from "./services/socket.js";
 import { useNavigate } from "react-router-dom";
 
 const API_PORT = 3000;

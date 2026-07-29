@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { socket } from './socket.js'
+import { socket } from './services/socket.js'
 
 const API_PORT = 3000
 const AVAILABLE_GAMES = [

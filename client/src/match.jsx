@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { socket, ensureSocketConnected } from "./socket.js";
+import { socket, ensureSocketConnected } from "./services/socket.js";
 
 const Match = () => {
     const location = useLocation();
