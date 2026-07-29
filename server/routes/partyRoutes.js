@@ -5,6 +5,7 @@ import { getParty } from "../controllers/partyControllers/getParty.js";
 import { leaveParty } from "../controllers/partyControllers/leaveParty.js";
 import {verifyJWT} from "../middlewares/authMiddleware.js"
 import { getMyParties } from "../controllers/partyControllers/myParties.js";
+import { searchParties } from "../controllers/partyControllers/searchParties.js";
 
 const route =Router();
 
@@ -27,5 +28,10 @@ route.get(
     verifyJWT,
     getMyParties
 );
+
+route.get(
+    "/search-parties",verifyJWT,
+    searchParties
+)
 
 export default route;

@@ -11,17 +11,21 @@ const Party = () => {
     const [loading, setLoading] = useState(false);
     const navigate=useNavigate();
     const [myParties, setMyParties] = useState([]);
+    const [searchItem,setSearchItem]=useState("");
+    const [results,setResults]=useState([]);
 
     const handleJoinParty = async (e) => {
         e.preventDefault();
-
-        if (!inviteCode.trim()) {
+        console.log(e);
+        if (!inviteCode.trim() && !e.target.value) {
             alert("Please enter a party code");
             return;
         }
 
         setLoading(true);
-
+        let finalCode="";
+        if(e.target.value){finalCode=e.target.value;}
+        else finalCode=inviteCode;
         try {
             const token = localStorage.getItem("jwt-auth-token");
 
@@ -34,7 +38,7 @@ const Party = () => {
                         "Authorization": `Bearer ${token}`,
                     },
                     body: JSON.stringify({
-                        inviteCode: inviteCode.trim(),
+                        inviteCode: finalCode.trim(),
                     }),
                 }
             );
@@ -145,7 +149,33 @@ const Party = () => {
 
         fetchMyParties();
     }, []);
+    useEffect(()=>{
+        if(!searchItem.trim()){
+            setResults([]);
+            return;
+        }
+        const timer=setTimeout(()=>{
+            searchParties(searchItem);
+        },300);
+        return()=>clearTimeout(timer);
+    },[searchItem])
+    const searchParties=async (item)=>{
+        try{
+            const token = localStorage.getItem("jwt-auth-token");
 
+            const response=await fetch(`http://localhost:${API_PORT}/api/search-parties?searchItem=${item}`,{
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    })
+            const data=await response.json();
+            console.log(data.parties);
+            setResults(data.parties);
+        }catch(err){
+            console.log(err);
+        }
+    }
     return (
         <div>
             {/* Join Party */}
@@ -222,6 +252,10 @@ const Party = () => {
                         {loading ? "Creating..." : "Create Party"}
                     </button>
                 </form>
+            </div>
+            <div>
+                <h2>Search parties:</h2><input type="text" placeholder="Enter public party name" value={searchItem} onChange={(e)=>setSearchItem(e.target.value)}/>
+                <div className="border-2">{results.map((el)=>{return <div style={{display:"flex",gap:"10px"}}> <h3>{el[0]}</h3> <button onClick={handleJoinParty} value={el[1]} style={{backgroundColor:"#ccc",borderRadius:"5px"}}>Join Party</button></div>})}</div>
             </div>
             <div>
                 <h2>My Parties</h2>
