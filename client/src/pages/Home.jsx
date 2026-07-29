@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { socket } from '../services/socket.js'
+import { Navbar } from '../components/layout/Navbar'
+import { GameCard } from '../components/gaming/GameCard'
+import { Button, Badge, Spinner } from '../components/common'
 
 const API_PORT = 3000
 const AVAILABLE_GAMES = [
@@ -12,7 +15,7 @@ const AVAILABLE_GAMES = [
   { label: 'Apex Legends', slug: 'apex' },
 ]
 
-const home = () => {
+const Home = () => {
   const navigate = useNavigate();
 
 {/* States for Segment1: QUICK MATCHMAKING */}
@@ -222,18 +225,7 @@ localStorage.removeItem("jwt-auth-token");
 
   return (
     <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-400">
-      <div className="fixed flex flex-row z-999 min-w-screen min-h-10 sm:flex-row sm:items-center justify-between bg-neutral-900 border-b border-b-neutral-700 p-2">
-         <button onClick={() => navigate("/profile")} className="hover:bg-neutral-600 text-xs w-24 font-mono tracking-widest text-zinc-400 uppercase bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6">
-            Profile
-          </button>
-         <button onClick={handleLogOut} className="hover:bg-neutral-600 text-xs w-24 font-mono tracking-widest text-zinc-400 uppercase bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6">
-            Log out
-          </button>
-         <button onClick={() => navigate("/party")} className="hover:bg-neutral-600 text-xs w-24 font-mono tracking-widest text-zinc-400 uppercase bg-neutral-700 border border-neutral-500 p-0 rounded inline-block h-6">
-            Parties
-          </button>
-            
-      </div>
+      <Navbar user={user} onLogout={handleLogOut} />
       {/*Main Layout*/}
       <div className="max-w-[1600px] mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
 
@@ -424,42 +416,11 @@ localStorage.removeItem("jwt-auth-token");
             <div className="flex gap-4 overflow-x-auto pb-3 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent snap-x snap-mandatory">
               {filteredGames.length > 0 ? (
                 filteredGames.map((g) => (
-                  <div
+                  <GameCard
                     key={g.id}
-                    className="group relative flex-none w-64 h-40 rounded-xl overflow-hidden border border-white/10 bg-zinc-900 snap-start transition-all duration-300 hover:scale-[1.03] hover:border-cyan-500/50 cursor-pointer shadow-lg"
-                  >
-                    {/* Card Banner Background Asset */}
-                    <div 
-                      className="absolute inset-0 bg-cover bg-center brightness-[0.4] group-hover:brightness-[0.5] transition-all duration-300 transform group-hover:scale-105"
-                      style={{ backgroundImage: `url(${g.bg})` }}
-                    />
-                    
-                    {/* Glass Surface Overlay Content */}
-                    <div className="absolute inset-0 p-4 flex flex-col justify-between z-10 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent">
-                      {/* Top Badges */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold">
-                          {g.genre}
-                        </span>
-                        <span className="text-[10px] font-mono tracking-wider text-zinc-400 uppercase bg-black/40 px-2 py-0.5 rounded border border-white/5">
-                          {g.platform}
-                        </span>
-                      </div>
-
-                      {/* Bottom Details */}
-                      <div className="space-y-1">
-                        <h3 className="font-black text-base tracking-wide text-white group-hover:text-cyan-400 transition-colors duration-200">
-                          {g.title}
-                        </h3>
-                        <div className="flex items-center space-x-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <p className="text-xs font-mono text-zinc-400">
-                            <span className="text-emerald-400 font-bold">{g.activePlayers.toLocaleString()}</span> Queueing
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    game={g}
+                    onClick={() => setGame(g.title.toLowerCase())}
+                  />
                 ))
               ) : (
                 <div className="w-full text-center py-12 bg-white/5 border border-white/10 border-dashed rounded-xl text-zinc-500 text-sm">
@@ -468,104 +429,10 @@ localStorage.removeItem("jwt-auth-token");
               )}
             </div>
           </section>
-
-        {/*Segment3: Tournament Panel */}        
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold tracking-wider uppercase text-slate-100">Tournaments & Scrims</h2>
-                <p className="text-xs text-zinc-400">Join active brackets or spectate pro divisions</p>
-              </div>
-              
-              {/* Carousel Navigation Indicator Dots */}
-              <div className="flex space-x-1.5 bg-white/5 p-1.5 rounded-lg border border-white/5">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
-              </div>
-            </div>
-
-            {/* Horizontal Carousel Track Wrapper */}
-            <div className="flex gap-4 overflow-x-auto pb-3 pt-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent snap-x snap-mandatory">
-              {tournamentsData.map((event) => {
-                const isFull = event.joinedTeams === event.maxTeams;
-                const isLive = event.status === "Live Progress";
-                const progressPercentage = (event.joinedTeams / event.maxTeams) * 100;
-
-                return (
-                  <div
-                    key={event.id}
-                    className="flex-none w-full md:w-[420px] bg-gradient-to-b from-slate-900 to-zinc-950 border border-white/10 rounded-xl p-5 snap-start relative overflow-hidden flex flex-col justify-between min-h-[190px] shadow-xl group"
-                  >
-                    {/* Event Type Accent Line Accent */}
-                    <div className={`absolute top-0 left-0 right-0 h-[2px] 
-                      ${isLive ? 'bg-magenta-500 bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-gradient-to-r from-cyan-500 to-blue-500'}`} 
-                    />
-
-                    {/* Top Row Context Details */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-[11px] font-mono tracking-wider">
-                        <span className="text-zinc-400 uppercase font-medium">{event.type}</span>
-                        <span className={`px-2 py-0.5 rounded-md font-bold uppercase tracking-widest border
-                          ${isLive 
-                            ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 animate-pulse' 
-                            : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
-                          }`}
-                        >
-                          ● {event.status}
-                        </span>
-                      </div>
-                      
-                      <h3 className="text-base font-black tracking-wide text-white group-hover:text-cyan-400 transition-colors duration-200 mt-1">
-                        {event.title}
-                      </h3>
-                      <p className="text-xs font-semibold text-emerald-400 tracking-wide font-mono">
-                        🏆 {event.reward}
-                      </p>
-                    </div>
-
-                    {/* Middle Progress Track Section */}
-                    <div className="my-4 space-y-1.5">
-                      <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
-                        <span>Slots Filled</span>
-                        <span className="font-bold text-slate-200">
-                          {event.joinedTeams} / {event.maxTeams} Teams
-                        </span>
-                      </div>
-                      <div className="w-full bg-zinc-900 border border-white/5 h-2 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full transition-all duration-500
-                            ${isLive ? 'bg-purple-500' : isFull ? 'bg-emerald-500' : 'bg-cyan-500'}`}
-                          style={{ width: `${progressPercentage}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Action Hub Row Footer */}
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-xs font-mono bg-white/5 px-2.5 py-1 rounded border border-white/5 text-zinc-300">
-                        ⚔️ {event.game}
-                      </span>
-                      
-                      <button className={`text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-1 border
-                        ${isLive 
-                          ? 'bg-purple-500 text-white border-purple-400/20 hover:bg-purple-600 shadow-[0_0_15px_rgba(168,85,247,0.3)]' 
-                          : 'bg-white/5 text-slate-200 border-white/10 hover:border-cyan-400/50 hover:text-cyan-400 hover:bg-cyan-500/5'
-                        }`}
-                      >
-                        <span>{event.actionText}</span>
-                        <span>{isLive ? '📺' : '→'}</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
         </main>
       </div>
     </div>
   )
 }
 
-export default home
+export default Home

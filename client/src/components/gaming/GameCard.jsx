@@ -1,33 +1,43 @@
 import React from 'react';
-import Badge from '../common/Badge';
 
-export const GameCard = ({ game, onSelect, isSelected = false }) => {
-  const { title, genre, platform, activePlayers } = game;
+export const GameCard = ({ game, onClick }) => {
+  if (!game) return null;
 
   return (
     <div
-      onClick={() => onSelect && onSelect(game)}
-      className={`group relative overflow-hidden rounded-2xl bg-slate-900/80 border p-5 transition-all duration-300 cursor-pointer hover:-translate-y-1 ${
-        isSelected
-          ? 'border-indigo-500 ring-2 ring-indigo-500/50 shadow-lg shadow-indigo-500/20'
-          : 'border-slate-800 hover:border-slate-700 hover:shadow-xl hover:shadow-slate-900/50'
-      }`}
+      onClick={onClick}
+      className="group relative flex-none w-64 h-40 rounded-xl overflow-hidden border border-white/10 bg-zinc-900 snap-start transition-all duration-300 hover:scale-[1.03] hover:border-cyan-500/50 cursor-pointer shadow-lg"
     >
-      <div className="flex items-start justify-between mb-3">
-        <h3 className="text-lg font-bold text-slate-100 group-hover:text-indigo-400 transition-colors">
-          {title}
-        </h3>
-        <Badge variant={genre === 'FPS' ? 'danger' : 'purple'}>{genre}</Badge>
-      </div>
+      {/* Card Banner Background Asset */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center brightness-[0.4] group-hover:brightness-[0.5] transition-all duration-300 transform group-hover:scale-105"
+        style={{ backgroundImage: `url(${game.bg})` }}
+      />
+      
+      {/* Glass Surface Overlay Content */}
+      <div className="absolute inset-0 p-4 flex flex-col justify-between z-10 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent">
+        {/* Top Badges */}
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold">
+            {game.genre}
+          </span>
+          <span className="text-[10px] font-mono tracking-wider text-zinc-400 uppercase bg-black/40 px-2 py-0.5 rounded border border-white/5">
+            {game.platform}
+          </span>
+        </div>
 
-      <div className="flex items-center justify-between text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/80">
-        <span className="flex items-center gap-1.5 font-medium">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          {activePlayers?.toLocaleString()} Active Players
-        </span>
-        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold uppercase tracking-wider text-[10px]">
-          {platform}
-        </span>
+        {/* Bottom Details */}
+        <div className="space-y-1">
+          <h3 className="font-black text-base tracking-wide text-white group-hover:text-cyan-400 transition-colors duration-200">
+            {game.title}
+          </h3>
+          <div className="flex items-center space-x-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <p className="text-xs font-mono text-zinc-400">
+              <span className="text-emerald-400 font-bold">{game.activePlayers?.toLocaleString()}</span> Queueing
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
