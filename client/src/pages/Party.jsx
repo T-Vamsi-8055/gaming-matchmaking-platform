@@ -1,7 +1,7 @@
 
 import React, { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { socket } from "./services/socket";
+import { socket } from "../services/socket";
 const API_PORT = 3000;
 
 const Party = () => {

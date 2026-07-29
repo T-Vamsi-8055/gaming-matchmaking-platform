@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { socket, ensureSocketConnected } from './services/socket.js'
+import { socket, ensureSocketConnected } from '../services/socket.js'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 const QueueScreen = () => {

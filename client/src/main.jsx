@@ -1,16 +1,16 @@
 import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style/index.css'
-import Login from './isLogin.jsx'
-import Home from './home.jsx' 
-import QueueScreen from './queueScreen.jsx' 
-import Profile from './profile.jsx'
-import OtpVerify from "./otpVerify.jsx";
-import Party from './party.jsx'
-import PartyRoom from './partyRoom.jsx'
+import Login from './pages/Login.jsx'
+import Home from './pages/Home.jsx' 
+import QueueScreen from './pages/QueueScreen.jsx' 
+import Profile from './pages/Profile.jsx'
+import OtpVerify from "./pages/OtpVerify.jsx";
+import Party from './pages/Party.jsx'
+import PartyRoom from './pages/PartyRoom.jsx'
 
 import {  BrowserRouter,Routes,Route } from 'react-router-dom';
-import Match from './match.jsx'
+import Match from './pages/Match.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
