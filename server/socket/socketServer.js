@@ -98,6 +98,11 @@ export function initializeSocket(server) {
       );
 
       onlineUsersMap.delete(String(socket.userId));
+      for(let i=0;i<grid.length;i++){
+        for(let j=0;j<grid[i].length;j++){
+          grid[i][j].deletePartyFromQueue(`user:${socket.userId}`);
+        }
+      }
     });
 
     // --------------------------------------------------
