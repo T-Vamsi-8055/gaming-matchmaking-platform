@@ -5,15 +5,16 @@ import { Navbar } from '../components/layout/Navbar'
 import { GameCard } from '../components/gaming/GameCard'
 import { Button, Badge, Spinner } from '../components/common'
 import { API_PORT, AVAILABLE_GAMES } from '../utils/constants'
+import { useAuth } from '../hooks/useAuth'
+import { useSocket } from '../hooks/useSocket'
 
 const Home = () => {
   const navigate = useNavigate();
 
 {/* States for Segment1: QUICK MATCHMAKING */}
 
-  // Authentication & Profile States
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Authentication State via Custom Hook
+  const { user, loading } = useAuth();
   const [preferredGames, setPreferredGames] = useState([]);
   const [gameAnalytics, setGameAnalytics] = useState({});
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
@@ -47,22 +48,13 @@ const Home = () => {
   });
 
 
+  // 1. Fetch Profile & Analytics when authenticated
   useEffect(() => {
-    const checkAuth = async () => {
+    if (!user) return;
+
+    const fetchProfileAndAnalytics = async () => {
+      const token = localStorage.getItem("jwt-auth-token");
       try {
-        const response = await fetch(`http://localhost:${API_PORT}/api/auth/me`, {
-          credentials: "include"
-        });
-
-        if (!response.ok) {
-          navigate("/auth");
-          return;
-        }
-
-        const userData = await response.json();
-        setUser(userData);
-
-        const token = localStorage.getItem("jwt-auth-token");
         const profileResponse = await fetch(`http://localhost:${API_PORT}/api/profile`, {
           method: "GET",
           credentials: "include",
@@ -109,32 +101,27 @@ const Home = () => {
               return acc;
             }, {});
 
-
             setGameAnalytics(analyticsMap);
           }
         }
-
-        const handleJoinedUserQueue = ({userId,game,queueType}) => {
-              navigate("/queueScreen",{
-                state:{
-                  game:game,queueType:queueType,partyId:"",from:""
-                }
-              });
-            };
-
-        socket.on("joined-user-queue", handleJoinedUserQueue);
-        
       } catch (error) {
-        console.error("Auth verification failed:", error);
-        navigate("/auth");
+        console.error("Failed to load profile/analytics:", error);
       } finally {
-        setLoading(false);
         setAnalyticsLoading(false);
       }
     };
 
-    checkAuth();
-  }, [navigate]);
+    fetchProfileAndAnalytics();
+  }, [user]);
+
+  // 2. Socket Event Subscriptions via Custom Hook
+  useSocket("joined-user-queue", ({ userId, game, queueType }) => {
+    navigate("/queueScreen", {
+      state: {
+        game, queueType, partyId: "", from: ""
+      }
+    });
+  });
 
   // 2. Queue Timer Effect
   useEffect(() => {
