@@ -61,7 +61,6 @@ export function penaltyRange(time){
 }
 
 export const matchSize=4;
-export let finalMatches=[];
-
+export const finalMatches=[];
 export const lengthOfGames = 5;
 export const lengthOfQueueTypes = 3;

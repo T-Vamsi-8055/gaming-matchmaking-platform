@@ -88,6 +88,15 @@ export default class queue{
 
         return null;
     }
+    checkLatePeople(){
+        this.partyQueueArray.forEach((party)=>{
+            const waitingTime = Date.now() - party.getJoinTime();
+
+                if (waitingTime > maxTime) {
+                    maxTime = waitingTime;
+                }
+        })
+    }
     getGameName(){return this.gameName;}
     getQueueType(){return this.queueType;}
     getNumberOfParties(){return this.partyQueueArray.length}
