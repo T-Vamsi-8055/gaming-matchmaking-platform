@@ -188,9 +188,6 @@ const Party = () => {
                 >
                     ← Home
                 </button>
-                <div className="text-xs font-mono tracking-widest text-zinc-400 uppercase">
-                    PARTY SYSTEM MATRIX
-                </div>
             </div>
 
             {/* Ambient Background Glows */}
