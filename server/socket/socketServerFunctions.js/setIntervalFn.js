@@ -1,13 +1,11 @@
 import {lengthOfGames,lengthOfQueueTypes,finalMatches} from "../GameLogic.js";
 
 export function setIntervalFn(grid,io){
-  console.log(grid[0][0])
     try {
       for (let i = 0; i < lengthOfGames; i++) {
     for (let j = 0; j < lengthOfQueueTypes; j++) {
       let noMoreMatches=false;
         const lateParties=grid[i][j].checkLateParties();
-        console.log(lateParties);
         for (const party of lateParties) {
             const users=party.getQueueObjArray();
             const partyId=party.getPartyId();
