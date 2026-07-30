@@ -88,14 +88,16 @@ export default class queue{
 
         return null;
     }
-    checkLatePeople(){
+    checkLateParties(){
+        const ans=[];
         this.partyQueueArray.forEach((party)=>{
             const waitingTime = Date.now() - party.getJoinTime();
 
-                if (waitingTime > maxTime) {
-                    maxTime = waitingTime;
+                if (waitingTime > 50000) {
+                    ans.push(party);
                 }
         })
+        return ans;
     }
     getGameName(){return this.gameName;}
     getQueueType(){return this.queueType;}

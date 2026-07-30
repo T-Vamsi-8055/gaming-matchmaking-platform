@@ -36,7 +36,8 @@ const QueueScreen = () => {
     
 
     const handleExitPartyQueue = (userId) => {
-      console.log("Exiting party queue");
+      if(userId)console.log("Exiting party queue due to user:",userId);
+      else alert("Exiting party queue. Reason:Its taking more time than expected,Sorry for the inconvenience.");
       navigate(`/${location.state?.from}`);
     };
 

@@ -407,8 +407,7 @@ if (!newState.members.includes(socket.userId)) newState.members.push(socket.user
          * Reset readiness.
          */
           livePartyState.get(partyId).readyMembers.length=0;
-        const members = livePartyState.get(partyId).members
-        const lengthOfParty=livePartyState.get(partyId).members;
+        const members = livePartyState.get(partyId).members;
         for (const member of members) {
             let userId=member;
             if(!typeof(member)==Number)userId=member.getUserId();

@@ -1,19 +1,33 @@
 import {lengthOfGames,lengthOfQueueTypes,finalMatches} from "../GameLogic.js";
 
 export function setIntervalFn(grid,io){
+  console.log(grid[0][0])
     try {
       for (let i = 0; i < lengthOfGames; i++) {
     for (let j = 0; j < lengthOfQueueTypes; j++) {
-
+      let noMoreMatches=false;
+        const lateParties=grid[i][j].checkLateParties();
+        console.log(lateParties);
+        for (const party of lateParties) {
+            const users=party.getQueueObjArray();
+            const partyId=party.getPartyId();
+            grid[i][j].deletePartyFromQueue(partyId);
+          for (const user of users ) {
+            const userId=user.getUserId();
+            io.to(String(userId)).emit("exit-party-queue", "");
+          }
+          }
+        while(!noMoreMatches){
         const matchedParties = grid[i][j].checkFeasibleMatches();
-
         if (!matchedParties) {
+            noMoreMatches=true;
             continue;
         }
 
         grid[i][j].deleteMatchPartiesFromQueue(matchedParties);
 
         finalMatches.push(matchedParties);
+      }
     }
 }   if (finalMatches.length === 0) {
         return;
