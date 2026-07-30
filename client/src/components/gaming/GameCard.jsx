@@ -34,7 +34,7 @@ export const GameCard = ({ game, onClick }) => {
           <div className="flex items-center space-x-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <p className="text-xs font-mono text-zinc-400">
-              <span className="text-emerald-400 font-bold">{game.activePlayers?.toLocaleString()}</span> Queueing
+              Queueing
             </p>
           </div>
         </div>
