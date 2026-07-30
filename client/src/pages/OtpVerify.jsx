@@ -2,8 +2,8 @@ import React from 'react'
 import {useState,useEffect} from 'react'
 import {useLocation,useNavigate} from 'react-router-dom'
 import {socket} from "../services/socket";
+import { API_PORT } from "../utils/constants";
 
-const API_PORT= 3000
 export default function otpVerify(){
     const [formData,setFormData]=useState(["","","","","",""])
     const [resendBtn, setResendBtn] = useState(false);

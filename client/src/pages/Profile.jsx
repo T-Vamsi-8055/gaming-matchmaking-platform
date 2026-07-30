@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_PORT, AVAILABLE_GAMES } from '../utils/constants';
 
-const AVAILABLE_GAMES = [
-    "Valorant",
-    "CS2",
-    "PUBG",
-    "Dota 2",
-    "League of Legends",
-    "Apex Legends"
-];
-const API_PORT = 3000;
 const registeredName = localStorage.getItem("registeredName") || '';
 
 export default function Profile() {
@@ -255,19 +247,19 @@ export default function Profile() {
                   <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold block">Games You Play</label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {AVAILABLE_GAMES.map((game) => {
-                      const isChecked = profile.preferredGames.includes(game);
+                      const isChecked = profile.preferredGames.includes(game.label);
                       return (
                         <button
                           type="button"
-                          key={game}
-                          onClick={() => handleGamesToggle(game)}
+                          key={game.label}
+                          onClick={() => handleGamesToggle(game.label)}
                           className={`p-2.5 text-xs font-mono font-bold uppercase tracking-wider rounded-lg border transition-all duration-200 text-center
                             ${isChecked 
                               ? 'bg-cyan-500/10 border-cyan-400 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.15)]' 
                               : 'bg-zinc-950/60 border-white/10 text-zinc-400 hover:border-white/20 hover:text-slate-200'
                             }`}
                         >
-                          {game} {isChecked && ' ✓'}
+                          {game.label} {isChecked && ' ✓'}
                         </button>
                       );
                     })}

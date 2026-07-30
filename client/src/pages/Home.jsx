@@ -4,16 +4,7 @@ import { socket } from '../services/socket.js'
 import { Navbar } from '../components/layout/Navbar'
 import { GameCard } from '../components/gaming/GameCard'
 import { Button, Badge, Spinner } from '../components/common'
-
-const API_PORT = 3000
-const AVAILABLE_GAMES = [
-  { label: 'Valorant', slug: 'valorant' },
-  { label: 'Counter-Strike 2', slug: 'cs2' },
-  { label: 'PUBG', slug: 'pubg' },
-  { label: 'Dota 2', slug: 'dota2' },
-  { label: 'League of Legends', slug: 'lol' },
-  { label: 'Apex Legends', slug: 'apex' },
-]
+import { API_PORT, AVAILABLE_GAMES } from '../utils/constants'
 
 const Home = () => {
   const navigate = useNavigate();
@@ -55,43 +46,6 @@ const Home = () => {
     return genreMatch && platformMatch;
   });
 
-{/* States for Segment3: Tournament Panel */}
-  // Mock Data for Tournaments & Scrims
-  const tournamentsData = [
-    {
-      id: 1,
-      title: "Valorant Radiant Clash",
-      type: "Championship Tournament",
-      joinedTeams: 24,
-      maxTeams: 32,
-      status: "Registering",
-      game: "Valorant",
-      reward: "$5,000 Prize Pool",
-      actionText: "Register Team"
-    },
-    {
-      id: 2,
-      title: "CS2 EU Masters Qualifier",
-      type: "Pro Scrim / Bracket",
-      joinedTeams: 16,
-      maxTeams: 16,
-      status: "Live Progress",
-      game: "Counter-Strike 2",
-      reward: "Tier-1 Seed Spot",
-      actionText: "Watch Live"
-    },
-    {
-      id: 3,
-      title: "League of Legends Rift Rivalry",
-      type: "Community Cup",
-      joinedTeams: 58,
-      maxTeams: 64,
-      status: "Registering",
-      game: "League of Legends",
-      reward: "Premium Loot Drops",
-      actionText: "Register Team"
-    }
-  ];
 
   useEffect(() => {
     const checkAuth = async () => {

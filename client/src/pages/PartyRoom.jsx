@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "../services/socket.js";
 import { useNavigate } from "react-router-dom";
-
-const API_PORT = 3000;
+import { API_PORT } from "../utils/constants";
 
 const PartyRoom = () => {
   const { id } = useParams();

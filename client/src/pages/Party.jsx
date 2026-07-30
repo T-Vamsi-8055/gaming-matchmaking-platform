@@ -2,7 +2,7 @@
 import React, { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../services/socket";
-const API_PORT = 3000;
+import { API_PORT } from "../utils/constants";
 
 const Party = () => {
     const [inviteCode, setInviteCode] = useState("");
