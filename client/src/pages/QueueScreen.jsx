@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { socket, ensureSocketConnected } from '../services/socket.js'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { Button } from '../components/common'
 
 const QueueScreen = () => {
   const navigate = useNavigate();
@@ -122,12 +123,14 @@ const QueueScreen = () => {
         </div>
 
         {/* Cancel Queue Action */}
-        <button
-          onClick={handleCancelBtn} disabled={isCancelling}
-          className="px-8 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/60 text-red-400 hover:text-red-300 font-bold uppercase tracking-widest text-xs transition-all duration-200 shadow-lg active:scale-95 cursor-pointer"
+        <Button
+          onClick={handleCancelBtn}
+          disabled={isCancelling}
+          variant="danger"
+          className="px-8 py-3 text-xs"
         >
           {isCancelling ? "Cancelling..." : "Cancel Queue"}
-        </button>
+        </Button>
 
       </div>
     </div>

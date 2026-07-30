@@ -6,21 +6,21 @@ export const Badge = ({
   size = 'md',
   className = '',
 }) => {
-  const baseStyles = 'inline-flex items-center font-medium rounded-full border';
+  const baseStyles = 'inline-flex items-center font-mono uppercase tracking-wider rounded font-bold border';
 
   const sizeStyles = {
-    sm: 'px-2 py-0.5 text-xs',
+    sm: 'px-2 py-0.5 text-[10px]',
     md: 'px-2.5 py-1 text-xs',
     lg: 'px-3 py-1.5 text-sm',
   };
 
   const variantStyles = {
-    success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    warning: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    danger: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-    info: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
-    purple: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-    neutral: 'bg-slate-800 text-slate-300 border-slate-700',
+    success: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    warning: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    danger: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
+    info: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+    purple: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+    neutral: 'bg-black/40 text-zinc-400 border-white/10',
   };
 
   return (

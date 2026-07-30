@@ -1,18 +1,18 @@
-
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../services/socket";
 import { API_PORT } from "../utils/constants";
+import { Button, Input, Badge } from "../components/common";
 
 const Party = () => {
     const [inviteCode, setInviteCode] = useState("");
     const [partyName, setPartyName] = useState("");
     const [visibility, setVisibility] = useState("PUBLIC");
     const [loading, setLoading] = useState(false);
-    const navigate=useNavigate();
+    const navigate = useNavigate();
     const [myParties, setMyParties] = useState([]);
-    const [searchItem,setSearchItem]=useState("");
-    const [results,setResults]=useState([]);
+    const [searchItem, setSearchItem] = useState("");
+    const [results, setResults] = useState([]);
 
     const handleJoinParty = async (e) => {
         e.preventDefault();
@@ -23,9 +23,9 @@ const Party = () => {
         }
 
         setLoading(true);
-        let finalCode="";
-        if(e.target.value){finalCode=e.target.value;}
-        else finalCode=inviteCode;
+        let finalCode = "";
+        if (e.target.value) { finalCode = e.target.value; }
+        else finalCode = inviteCode;
         try {
             const token = localStorage.getItem("jwt-auth-token");
 
@@ -98,15 +98,13 @@ const Party = () => {
                 alert(data.message || "Failed to create party");
                 return;
             }
-            socket.emit("created-party",data.party.id);
+            socket.emit("created-party", data.party.id);
 
             alert("Party created successfully");
 
-           console.log("Created party:", data);
+            console.log("Created party:", data);
 
             navigate(`/party/${data.party.id}`);
-
-          
 
         } catch (err) {
             console.error("Error creating party:", err);
@@ -115,6 +113,7 @@ const Party = () => {
             setLoading(false);
         }
     };
+
     useEffect(() => {
         const fetchMyParties = async () => {
             try {
@@ -149,146 +148,173 @@ const Party = () => {
 
         fetchMyParties();
     }, []);
-    useEffect(()=>{
-        if(!searchItem.trim()){
+
+    useEffect(() => {
+        if (!searchItem.trim()) {
             setResults([]);
             return;
         }
-        const timer=setTimeout(()=>{
+        const timer = setTimeout(() => {
             searchParties(searchItem);
-        },300);
-        return()=>clearTimeout(timer);
-    },[searchItem])
-    const searchParties=async (item)=>{
-        try{
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchItem]);
+
+    const searchParties = async (item) => {
+        try {
             const token = localStorage.getItem("jwt-auth-token");
 
-            const response=await fetch(`http://localhost:${API_PORT}/api/search-parties?searchItem=${item}`,{
-                        method: "GET",
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    })
-            const data=await response.json();
+            const response = await fetch(`http://localhost:${API_PORT}/api/search-parties?searchItem=${item}`, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            const data = await response.json();
             console.log(data.parties);
             setResults(data.parties);
-        }catch(err){
+        } catch (err) {
             console.log(err);
         }
-    }
+    };
+
     return (
-        <div>
-            {/* Join Party */}
-            <div>
-                <h2>Join Party</h2>
-
-                <form onSubmit={handleJoinParty}>
-                    <label htmlFor="inviteCode">
-                        Enter the party code
-                    </label>
-
-                    <input
-                        id="inviteCode"
-                        name="inviteCode"
-                        type="text"
-                        value={inviteCode}
-                        onChange={(e) => setInviteCode(e.target.value)}
-                        placeholder="Enter party code"
-                    />
-
-                    <button type="submit" disabled={loading}>
-                        {loading ? "Please wait..." : "Join Party"}
-                    </button>
-                </form>
+        <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-400 relative overflow-hidden">
+            {/* Top Navigation Bar */}
+            <div className="fixed flex flex-row z-50 w-full min-h-10 items-center justify-between bg-neutral-900/90 backdrop-blur-md border-b border-b-neutral-800 p-2.5 px-4">
+                <button
+                    onClick={() => navigate("/")}
+                    className="hover:bg-neutral-800 text-xs font-mono tracking-widest text-zinc-300 uppercase bg-neutral-900 border border-neutral-700 px-3 py-1 rounded transition-colors cursor-pointer"
+                >
+                    ← Home
+                </button>
+                <div className="text-xs font-mono tracking-widest text-zinc-400 uppercase">
+                    PARTY SYSTEM MATRIX
+                </div>
             </div>
 
-            {/* Create Party */}
-            <div>
-                <h2>Create Party</h2>
+            {/* Ambient Background Glows */}
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none" />
+            <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[140px] pointer-events-none" />
 
-                <form onSubmit={handleCreateParty}>
-                    <label htmlFor="partyName">
-                        Party Name
-                    </label>
+            {/* Main Content Area */}
+            <div className="max-w-[1600px] mx-auto px-4 pt-20 pb-12 flex justify-center relative z-10">
+                <main className="w-full max-w-2xl space-y-8">
 
-                    <input
-                        id="partyName"
-                        name="partyName"
-                        type="text"
-                        value={partyName}
-                        onChange={(e) => setPartyName(e.target.value)}
-                        placeholder="Enter party name"
-                    />
+                    {/* Join Party */}
+                    <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-zinc-900 to-black border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl space-y-4">
+                        <h2 className="text-lg font-bold tracking-wider uppercase text-slate-100">Join Party</h2>
 
-                    <div>
-                        <label>
-                            <input
-                                type="radio"
-                                name="visibility"
-                                value="PUBLIC"
-                                checked={visibility === "PUBLIC"}
-                                onChange={(e) =>
-                                    setVisibility(e.target.value)
-                                }
+                        <form onSubmit={handleJoinParty} className="space-y-4">
+                            <Input
+                                label="Party Code"
+                                name="inviteCode"
+                                value={inviteCode}
+                                onChange={(e) => setInviteCode(e.target.value)}
+                                placeholder="Enter party code"
                             />
-                            Public
-                        </label>
 
-                        <label>
-                            <input
-                                type="radio"
-                                name="visibility"
-                                value="PRIVATE"
-                                checked={visibility === "PRIVATE"}
-                                onChange={(e) =>
-                                    setVisibility(e.target.value)
-                                }
+                            <Button type="submit" variant="primary" isLoading={loading} disabled={loading} className="w-full">
+                                Join Party
+                            </Button>
+                        </form>
+                    </section>
+
+                    {/* Create Party */}
+                    <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-zinc-900 to-black border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl space-y-4">
+                        <h2 className="text-lg font-bold tracking-wider uppercase text-slate-100">Create Party</h2>
+
+                        <form onSubmit={handleCreateParty} className="space-y-4">
+                            <Input
+                                label="Party Name"
+                                name="partyName"
+                                value={partyName}
+                                onChange={(e) => setPartyName(e.target.value)}
+                                placeholder="Enter party name"
                             />
-                            Private
-                        </label>
-                    </div>
 
-                    <button type="submit" disabled={loading}>
-                        {loading ? "Creating..." : "Create Party"}
-                    </button>
-                </form>
-            </div>
-            <div>
-                <h2>Search parties:</h2><input type="text" placeholder="Enter public party name" value={searchItem} onChange={(e)=>setSearchItem(e.target.value)}/>
-                <div className="border-2">{results.map((el)=>{return <div style={{display:"flex",gap:"10px"}}> <h3>{el[0]}</h3> <button onClick={handleJoinParty} value={el[1]} style={{backgroundColor:"#ccc",borderRadius:"5px"}}>Join Party</button></div>})}</div>
-            </div>
-            <div>
-                <h2>My Parties</h2>
+                            <div className="flex items-center gap-6 pt-1">
+                                <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-300">
+                                    <input
+                                        type="radio"
+                                        name="visibility"
+                                        value="PUBLIC"
+                                        checked={visibility === "PUBLIC"}
+                                        onChange={(e) => setVisibility(e.target.value)}
+                                        className="accent-cyan-400"
+                                    />
+                                    <span>Public</span>
+                                </label>
 
-                {myParties.length === 0 ? (
-                    <p>You are not in any parties.</p>
-                ) : (
-                    myParties.map((party) => (
-                                        <div key={party.id}>
-                        <h3>{party.party_name}</h3>
+                                <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-300">
+                                    <input
+                                        type="radio"
+                                        name="visibility"
+                                        value="PRIVATE"
+                                        checked={visibility === "PRIVATE"}
+                                        onChange={(e) => setVisibility(e.target.value)}
+                                        className="accent-cyan-400"
+                                    />
+                                    <span>Private</span>
+                                </label>
+                            </div>
 
-                        <p>
-                            Members: {party.member_count}
-                        </p>
+                            <Button type="submit" variant="success" isLoading={loading} disabled={loading} className="w-full">
+                                Create Party
+                            </Button>
+                        </form>
+                    </section>
 
-                        <p>
-                            Visibility: {party.visibility}
-                        </p>
+                    {/* Search Parties */}
+                    <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-zinc-900 to-black border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl space-y-4">
+                        <h2 className="text-lg font-bold tracking-wider uppercase text-slate-100">Search Public Parties</h2>
+                        <Input
+                            name="searchParties"
+                            placeholder="Enter public party name"
+                            value={searchItem}
+                            onChange={(e) => setSearchItem(e.target.value)}
+                        />
+                        <div className="space-y-2">
+                            {results.map((el) => (
+                                <div key={el[1]} className="flex items-center justify-between bg-zinc-950/60 border border-white/10 rounded-xl p-3">
+                                    <span className="text-sm font-bold text-slate-200">{el[0]}</span>
+                                    <Button onClick={handleJoinParty} value={el[1]} size="sm" variant="secondary">
+                                        Join Party
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
 
-                        <button
-                            onClick={() =>
-                                navigate(`/party/${party.id}`)
-                            }
-                        >
-                            Enter Party
-                        </button>
-                    </div>
-                    ))
-                )}
+                    {/* My Parties */}
+                    <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-zinc-900 to-black border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl space-y-4">
+                        <h2 className="text-lg font-bold tracking-wider uppercase text-slate-100">My Parties</h2>
+
+                        {myParties.length === 0 ? (
+                            <p className="text-sm text-zinc-500 font-mono">You are not in any parties.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {myParties.map((party) => (
+                                    <div key={party.id} className="flex items-center justify-between bg-zinc-950/60 border border-white/10 rounded-xl p-4">
+                                        <div className="space-y-1">
+                                            <h3 className="text-sm font-bold text-slate-100">{party.party_name}</h3>
+                                            <div className="flex items-center gap-2">
+                                                <Badge size="sm" variant="info">{party.member_count} members</Badge>
+                                                <Badge size="sm" variant={party.visibility === "PUBLIC" ? "success" : "warning"}>{party.visibility}</Badge>
+                                            </div>
+                                        </div>
+                                        <Button onClick={() => navigate(`/party/${party.id}`)} size="sm" variant="outline">
+                                            Enter Party
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                </main>
             </div>
         </div>
     );
 };
 
 export default Party;
-

@@ -135,11 +135,18 @@ const Home = () => {
     }
     return () => clearInterval(timer);
   }, [isQueueing]);
-  const handleFindMatch=() => {
-    setIsQueueing(!isQueueing);
-    socket.emit("join-user-queue",game,queueType);
-    
-  }
+  const handleFindMatch = () => {
+    if (!game || !queueType) return;
+    socket.emit("join-user-queue", game, queueType);
+    navigate("/queueScreen", {
+      state: {
+        game,
+        queueType,
+        partyId: "",
+        from: ""
+      }
+    });
+  };
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -228,27 +235,14 @@ localStorage.removeItem("jwt-auth-token");
                 </div>
 
                 {/*Matchmaking Trigger Button */}
-                <button
+                <Button
                   onClick={handleFindMatch}
                   disabled={!game || !queueType}
-                  className={`w-full py-4 rounded-xl font-black uppercase tracking-widest transition-all duration-300 transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none
-                    ${isQueueing 
-                      ? 'bg-emerald-500 text-zinc-950 shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:bg-emerald-400' 
-                      : 'bg-cyan-500 text-zinc-950 shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:bg-cyan-400'
-                    }`}
+                  variant="primary"
+                  className="w-full py-4 text-base"
                 >
-                  {isQueueing ? 'Finding Match...' : 'Find Match'}
-                </button>
-
-                {/* Visual Spin & Time Increment Tracker */}
-                {isQueueing && (
-                  <div className="flex items-center justify-center space-x-3 text-emerald-400 animate-fade-in py-1">
-                    <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-xs font-mono font-bold tracking-widest">
-                      IN QUEUE • {formatTime(queueTime)}
-                    </span>
-                  </div>
-                )}
+                  Find Match
+                </Button>
               </div>
 
               {/* Instant Lobby Creation Buttons */}

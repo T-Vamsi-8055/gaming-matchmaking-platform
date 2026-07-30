@@ -2,14 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "../services/socket.js";
 import { useNavigate } from "react-router-dom";
-import { API_PORT } from "../utils/constants";
+import { API_PORT, AVAILABLE_GAMES } from "../utils/constants";
+import { Button, Input, Badge, Spinner } from "../components/common";
 
 const PartyRoom = () => {
   const { id } = useParams();
   const [party, setParty] = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const [isReady,setIsReady]=useState(false);
+  const [isReady, setIsReady] = useState(false);
   const [livePartyState, setLivePartyState] = useState({
     game: "",
     queueType: "",
@@ -18,10 +19,10 @@ const PartyRoom = () => {
     leaderId: null,
   });
   const [userId, setUserId] = useState(null);
-  const navigate=useNavigate();
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (!id) return;
-    console.log("his");
     const fetchParty = async () => {
       try {
         const token = localStorage.getItem("jwt-auth-token");
@@ -43,8 +44,6 @@ const PartyRoom = () => {
         const partyData = await partyResponse.json();
         const meData = await meResponse.json();
 
-        console.log(partyData.party,meData);
-
         if (!partyResponse.ok) {
           alert(partyData.message || "Failed to load party");
           return;
@@ -54,22 +53,11 @@ const PartyRoom = () => {
           alert(meData.message || "Failed to load user details");
           return;
         }
-        console.log(partyData);
+
         setUserId(meData.id);
         setParty(partyData.party);
         setMessages(partyData.messages || []);
-        /*
-         * The party object should ideally contain:
-         *
-         * party.game
-         * party.queue_type
-         * party.start_count
-         *
-         * If these are not currently returned by your API,
-         * the socket events below will populate them after
-         * another member changes them.
-         */
-        socket.emit("open-party",partyData.party.id);
+        socket.emit("open-party", partyData.party.id);
         
       } catch (error) {
         console.error("Error fetching party:", error);
@@ -92,11 +80,9 @@ const PartyRoom = () => {
 
     const handlePartyReady = (data) => {
       console.log("Party is ready for matchmaking:", data);
-      const game=data.game;
-      const queueType=data.queueType;
-      const state= {  game, queueType,partyId: id,from:`party/${id}` };
-      console.log(state);
-      navigate("/queueScreen",{ state: {  game, queueType,partyId: id,from:`party/${id}` } });
+      const game = data.game;
+      const queueType = data.queueType;
+      navigate("/queueScreen", { state: { game, queueType, partyId: id, from: `party/${id}` } });
     };
 
     const handleConnectError = (error) => {
@@ -112,30 +98,21 @@ const PartyRoom = () => {
 
     const handleChangeState = (state) => {
       setLivePartyState(state);
-      if(state.readyMembers.includes(userId))setIsReady(true);
-      console.log(state);
+      if (state.readyMembers.includes(userId)) setIsReady(true);
     };
 
     socket.on("connect", joinPartyRoom);
-
     socket.on("party-message", handleMessage);
-
-    socket.on("changed-party-state",handleChangeState );
-
+    socket.on("changed-party-state", handleChangeState);
     socket.on("party-ready-for-matchmaking", handlePartyReady);
-
     socket.on("connect_error", handleConnectSystemError);
     socket.on("connect-error", handleConnectError);
 
     if (!socket.connected) {
       const token = localStorage.getItem("jwt-auth-token");
-
       if (token) {
-        socket.auth = {
-          token,
-        };
+        socket.auth = { token };
       }
-
       socket.connect();
     } else {
       joinPartyRoom();
@@ -143,13 +120,9 @@ const PartyRoom = () => {
 
     return () => {
       socket.off("connect", joinPartyRoom);
-
       socket.off("party-message", handleMessage);
-
-      socket.off("changed-party-state",handleChangeState);
-
+      socket.off("changed-party-state", handleChangeState);
       socket.off("party-ready-for-matchmaking", handlePartyReady);
-
       socket.off("connect_error", handleConnectSystemError);
       socket.off("connect-error", handleConnectError);
       socket.off("party-error", handlePartyError);
@@ -158,16 +131,12 @@ const PartyRoom = () => {
         socket.emit("leave-party-room", id);
       }
     };
-  }, [id]);
+  }, [id, navigate, userId]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-
     const trimmedMessage = message.trim();
-
-    if (!trimmedMessage) {
-      return;
-    }
+    if (!trimmedMessage) return;
 
     socket.emit("send-party-message", {
       partyId: id,
@@ -177,75 +146,59 @@ const PartyRoom = () => {
     setMessage("");
   };
 
-  const handleStartMatch = (e) => {
-    if (!party) {
-      return;
-    }
-    try{
-    if(livePartyState.readyMembers.includes(userId)){
+  const handleStartMatch = () => {
+    if (!party) return;
+    try {
+      if (livePartyState.readyMembers.includes(userId)) {
+        const newState = livePartyState.readyMembers;
+        const index = newState.indexOf(userId);
+        newState.splice(index, 1);
 
-      const newState=livePartyState.readyMembers;
-      const index=newState.indexOf(userId);
-      newState.splice(index,1);
-            console.log("fine bhai",newState)
+        setLivePartyState((prev) => ({ ...prev, readyMembers: newState }));
+        setIsReady(false);
+        const temp = { ...livePartyState, readyMembers: newState };
+        socket.emit("change-party-state", {
+          partyId: id,
+          partyState: temp,
+        });
+        return;
+      }
 
-      setLivePartyState(prev=>({...prev,readyMembers:newState}));
-      setIsReady(false);
-      const temp={...livePartyState,readyMembers:newState};
-      socket.emit("change-party-state",{
-          partyId:id,
-          partyState:temp
-      })
-      return;
-    }
+      if (!livePartyState.game || !livePartyState.queueType) return;
+      const newState = livePartyState.readyMembers;
+      newState.push(userId);
+      setIsReady(true);
 
-    if(!livePartyState.game || !livePartyState.queueType)return;
-    const newState=livePartyState.readyMembers;
-    newState.push(userId);
-    setIsReady(true);
-    console.log("atleast it comes here",livePartyState)
+      setLivePartyState((prev) => ({ ...prev, readyMembers: newState }));
+      const temp = { ...livePartyState, readyMembers: newState };
+      socket.emit("change-party-state", {
+        partyId: id,
+        partyState: temp,
+      });
 
-    setLivePartyState(prev=>({...prev,readyMembers:newState}));
-    const temp={...livePartyState,readyMembers:newState};
-    socket.emit("change-party-state",{
-        partyId:id,
-        partyState:temp
-    })
-    console.log("atleast it comes here",livePartyState)
-
-
-    socket.emit("party-click-start", {
-      partyId: id,
-    });
-    }catch(error){
+      socket.emit("party-click-start", {
+        partyId: id,
+      });
+    } catch (error) {
       console.error(error);
     }
   };
 
-
-
-  
-
-
-  const handleLivePartyStateChange=(e)=>{
-    
-    setLivePartyState(prev=>({...prev,[e.target.name]:e.target.value}))
-    const temp={...livePartyState,[e.target.name]:e.target.value};
-    socket.emit("change-party-state",{
-        partyId:id,
-        partyState:temp
-    })
-  }
+  const handleLivePartyStateChange = (e) => {
+    setLivePartyState((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const temp = { ...livePartyState, [e.target.name]: e.target.value };
+    socket.emit("change-party-state", {
+      partyId: id,
+      partyState: temp,
+    });
+  };
 
   const handleLeaveParty = async () => {
     const confirmLeave = window.confirm("Leave this party?");
-
     if (!confirmLeave) return;
-    console.log("atleast it comes here")
 
     try {
       const token = localStorage.getItem("jwt-auth-token");
-
       const response = await fetch(
         `http://localhost:${API_PORT}/api/leave-party/${id}`,
         {
@@ -253,140 +206,162 @@ const PartyRoom = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
 
       const data = await response.json();
-
       if (!response.ok) {
         alert(data.message);
         return;
       }
 
       socket.emit("leave-party-room", id);
-
       navigate("/");
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
+
   if (!party) {
-    return <div>Loading party...</div>;
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
   }
-  
-  console.log(livePartyState);
+
   const isHost = Number(party.leader_id) === Number(userId);
-  console.log(livePartyState,livePartyState.readyMembers);
-  const allMembersReady = livePartyState.readyMembers.length==livePartyState.members.length;
+  const allMembersReady = livePartyState.readyMembers.length === livePartyState.members.length && livePartyState.members.length > 0;
 
   return (
-    <div>
-      <h1>{party.party_name}</h1>
+    <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans p-6 space-y-6 max-w-3xl mx-auto">
 
-      <p>Invite Code: {party.invite_code}</p>
-
-      <p>Visibility: {party.visibility}</p>
-
-      <button
-        onClick={handleLeaveParty}
-        className="bg-red-600 text-white px-4 py-2 rounded"
-      >
-        Leave Party
-      </button>
-      <h2>Members</h2>
-
-      {party.members.map((member) => (
-        <div key={member.userId}>
-          {member.userId}: {member.username}
-          {Number(member.userId) === Number(party.leader_id) && (
-            <span> 👑 Host</span>
-          )}
-        </div>
-      ))}
-
-      <hr />
-
-      {isHost ? (
-        <div>
-          <div>
-            <label>Preferred Game</label>
-
-            <select name='game' value={livePartyState.game} onChange={handleLivePartyStateChange}>
-              <option value="">Select Game...</option>
-
-              <option value="valorant">Valorant</option>
-
-              <option value="cs2">Counter-Strike 2</option>
-
-              <option value="lol">League of Legends</option>
-
-              <option value="apex">Apex Legends</option>
-
-              <option value="dota2">Dota 2</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Queue Type</label>
-
-            <select name='queueType' value={livePartyState.queueType} onChange={handleLivePartyStateChange}>
-              <option value="">Select Queue Type...</option>
-
-              <option value="1">Solo</option>
-
-              <option value="2">Duo</option>
-
-              <option value="4">Squad</option>
-            </select>
+      {/* Party Header */}
+      <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-2xl p-5 shadow-xl">
+        <div className="space-y-1 text-left">
+          <h1 className="text-xl font-black tracking-wider uppercase text-slate-100">{party.party_name}</h1>
+          <div className="flex items-center gap-2">
+            <Badge size="sm" variant="info">Code: {party.invite_code}</Badge>
+            <Badge size="sm" variant={party.visibility === "PUBLIC" ? "success" : "warning"}>{party.visibility}</Badge>
           </div>
         </div>
-      ) : (
-        <h2>
-          Game: {livePartyState.game || "Not selected"}
-          <br />
-          Queue Type: {livePartyState.queueType || "Not selected"}
-        </h2>
-      )}
-
-      <hr />
-
-      <div>
-        <h3>Party State: {allMembersReady ? "Ready" : "Waiting"}</h3>
-
-        <h3>
-          Ready: {livePartyState.readyMembers.length}/{livePartyState.members.length}
-        </h3>
-
-        <button onClick={handleStartMatch} disabled={allMembersReady}>
-          {(allMembersReady && isReady) ? "Everyone Ready" :(!allMembersReady && isReady)?"Exit Match": "Start Match"}
-        </button>
+        <Button onClick={handleLeaveParty} variant="danger" size="sm">
+          Leave Party
+        </Button>
       </div>
 
-      <hr />
+      {/* Members */}
+      <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3 shadow-xl">
+        <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400 text-left">Members</h2>
+        <div className="space-y-2">
+          {party.members.map((member) => (
+            <div key={member.userId} className="flex items-center justify-between bg-zinc-900/60 border border-white/10 rounded-xl p-3">
+              <span className="text-sm font-bold text-slate-200">{member.username}</span>
+              <div className="flex items-center gap-2">
+                {Number(member.userId) === Number(party.leader_id) && (
+                  <Badge size="sm" variant="warning">👑 Host</Badge>
+                )}
+                <span className="text-xs font-mono text-zinc-500">#{member.userId}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      <h2>Party Chat</h2>
+      {/* Game & Queue Selection */}
+      <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
+        <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400 text-left">Match Settings</h2>
+        {isHost ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="text-left space-y-1.5">
+              <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Preferred Game</label>
+              <select
+                name="game"
+                value={livePartyState.game}
+                onChange={handleLivePartyStateChange}
+                className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-xl p-2.5 outline-none transition-all duration-200 text-sm cursor-pointer"
+              >
+                <option value="">Select Game...</option>
+                {AVAILABLE_GAMES.map((g) => (
+                  <option key={g.slug} value={g.slug}>{g.label}</option>
+                ))}
+              </select>
+            </div>
 
-      <div>
-        {messages.map((item) => (
-          <div key={item.id}>
-            <strong>
-              {item.userId}: {item.username}:
-            </strong>{" "}
-            {item.message}
+            <div className="text-left space-y-1.5">
+              <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Queue Type</label>
+              <select
+                name="queueType"
+                value={livePartyState.queueType}
+                onChange={handleLivePartyStateChange}
+                className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-xl p-2.5 outline-none transition-all duration-200 text-sm cursor-pointer"
+              >
+                <option value="">Select Queue Type...</option>
+                <option value="1">Solo</option>
+                <option value="2">Duo</option>
+                <option value="4">Squad</option>
+              </select>
+            </div>
           </div>
-        ))}
-      </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Badge variant="info">Game: {livePartyState.game || "Not selected"}</Badge>
+            <Badge variant="info">Queue: {livePartyState.queueType || "Not selected"}</Badge>
+          </div>
+        )}
+      </section>
 
-      <form onSubmit={handleSendMessage}>
-        <input
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message..."
-        />
+      {/* Ready Status & Start */}
+      <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1 text-left">
+            <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400">Party Status</h2>
+            <div className="flex items-center gap-2">
+              <Badge variant={allMembersReady ? "success" : "warning"}>
+                {allMembersReady ? "All Ready" : "Waiting"}
+              </Badge>
+              <span className="text-xs font-mono text-zinc-400">
+                {livePartyState.readyMembers.length}/{livePartyState.members.length} ready
+              </span>
+            </div>
+          </div>
+          <Button
+            onClick={handleStartMatch}
+            disabled={allMembersReady}
+            variant={isReady ? "danger" : "success"}
+          >
+            {(allMembersReady && isReady) ? "Everyone Ready" : (!allMembersReady && isReady) ? "Exit Match" : "Start Match"}
+          </Button>
+        </div>
+      </section>
 
-        <button type="submit">Send</button>
-      </form>
+      {/* Party Chat */}
+      <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
+        <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400 text-left">Party Chat</h2>
+
+        <div className="max-h-60 overflow-y-auto space-y-2 text-left scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+          {messages.map((item) => (
+            <div key={item.id} className="bg-zinc-900/60 border border-white/5 rounded-xl p-3">
+              <span className="text-xs font-bold text-cyan-400">{item.username}</span>
+              <span className="text-xs text-zinc-500 ml-1 font-mono">#{item.userId}</span>
+              <p className="text-sm text-slate-300 mt-0.5">{item.message}</p>
+            </div>
+          ))}
+        </div>
+
+        <form onSubmit={handleSendMessage} className="flex gap-2">
+          <Input
+            name="chatMessage"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1"
+          />
+          <Button type="submit" size="md" variant="secondary">
+            Send
+          </Button>
+        </form>
+      </section>
     </div>
   );
 };
