@@ -4,6 +4,7 @@ import { socket } from "../services/socket.js";
 import { useNavigate } from "react-router-dom";
 import { API_PORT, AVAILABLE_GAMES } from "../utils/constants";
 import { Button, Input, Badge, Spinner } from "../components/common";
+import { Navbar } from "../components/layout/Navbar";
 
 const PartyRoom = () => {
   const { id } = useParams();
@@ -244,6 +245,7 @@ const PartyRoom = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-400 relative overflow-hidden">
+      <Navbar />
 
       {/* Main Content Area */}
       <div className="max-w-[1600px] mx-auto px-4 pt-20 pb-12 flex justify-center relative z-10">

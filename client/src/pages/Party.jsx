@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { socket } from "../services/socket";
 import { API_PORT } from "../utils/constants";
 import { Button, Input, Badge } from "../components/common";
+import { Navbar } from "../components/layout/Navbar";
 
 const Party = () => {
     const [inviteCode, setInviteCode] = useState("");
@@ -180,15 +181,7 @@ const Party = () => {
 
     return (
         <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-400 relative overflow-hidden">
-            {/* Top Navigation Bar */}
-            <div className="fixed flex flex-row z-50 w-full min-h-10 items-center justify-between bg-neutral-900/90 backdrop-blur-md border-b border-b-neutral-800 p-2.5 px-4">
-                <button
-                    onClick={() => navigate("/")}
-                    className="hover:bg-neutral-800 text-xs font-mono tracking-widest text-zinc-300 uppercase bg-neutral-900 border border-neutral-700 px-3 py-1 rounded transition-colors cursor-pointer"
-                >
-                    ← Home
-                </button>
-            </div>
+            <Navbar />
 
             {/* Ambient Background Glows */}
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none" />
