@@ -164,6 +164,16 @@ const PartyRoom = () => {
         return;
       }
 
+      if (!livePartyState.game || !livePartyState.queueType) {
+        if (!livePartyState.game && !livePartyState.queueType) {
+          alert("Please select both a game and a queue type before starting.");
+        } else if (!livePartyState.game) {
+          alert("Please select a game before starting.");
+        } else {
+          alert("Please select a queue type before starting.");
+        }
+        return;
+      }
       const newState = livePartyState.readyMembers;
       newState.push(userId);
       setIsReady(true);
