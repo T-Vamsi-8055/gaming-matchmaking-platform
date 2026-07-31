@@ -23,26 +23,6 @@ const Match = () => {
 
     const teams = rawTeams.length >= 2 ? rawTeams : (rawTeams.length === 1 ? [rawTeams[0], []] : defaultTeams);
 
-    // Component States
-    const [messages, setMessages] = useState([
-        {
-            id: "sys_1",
-            senderId: "SYSTEM",
-            senderName: "SYSTEM ANNOUNCEMENT",
-            text: "🎮 Match Lobby Created! Coordinate with your team & opponents below.",
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            isSystem: true
-        },
-        {
-            id: "sys_2",
-            senderId: "SYSTEM",
-            senderName: "SYSTEM ANNOUNCEMENT",
-            text: "💡 Tip: Share your In-Game ID (e.g. Riot Tag, Steam ID) or Lobby Code in the chat to start the game.",
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            isSystem: true
-        }
-    ]);
-
     const [inputText, setInputText] = useState("");
     const [isReady, setIsReady] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -72,84 +52,6 @@ const Match = () => {
             case "Gold": return "from-yellow-400 to-amber-500 text-amber-200 border-amber-400/40";
             default: return "from-slate-400 to-zinc-500 text-slate-300 border-slate-400/40";
         }
-    };
-
-    // Auto-scroll chat to bottom
-    const scrollToBottom = () => {
-        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-    // Socket integration for match chat
-    useEffect(() => {
-        ensureSocketConnected();
-
-        const handleReceiveMessage = (msgData) => {
-            setMessages((prev) => [...prev, msgData]);
-        };
-
-        const handleMatchUpdated = (matchData) => {
-            if (matchData && matchData.teams) {
-                const newReadyMap = {};
-                matchData.teams.forEach(team => {
-                    team.forEach(player => {
-                        if (player.isReady) newReadyMap[player.userId] = true;
-                    });
-                });
-                setReadyPlayers(newReadyMap);
-            }
-        };
-
-        socket.on("receive-match-message", handleReceiveMessage);
-        socket.on("match-updated", handleMatchUpdated);
-
-        return () => {
-            socket.off("receive-match-message", handleReceiveMessage);
-            socket.off("match-updated", handleMatchUpdated);
-        };
-    }, []);
-
-    // Send chat message
-    const handleSendMessage = (e) => {
-        e?.preventDefault();
-        if (!inputText.trim()) return;
-
-        const newMsg = {
-            id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-            senderId: socket.userId || "YOU",
-            senderName: socket.userId ? `Player_${socket.userId}` : "You",
-            text: inputText.trim(),
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            isSystem: false
-        };
-
-        // Emit over socket if connected
-        socket.emit("send-match-message", {
-            matchId: roomCode,
-            text: inputText.trim(),
-            senderName: newMsg.senderName
-        });
-
-        // Add to local state
-        setMessages((prev) => [...prev, newMsg]);
-        setInputText("");
-    };
-
-    // Share quick actions in chat
-    const handleQuickShare = (text) => {
-        const newMsg = {
-            id: `msg_${Date.now()}`,
-            senderId: socket.userId || "YOU",
-            senderName: socket.userId ? `Player_${socket.userId}` : "You",
-            text,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            isSystem: false
-        };
-        socket.emit("send-match-message", { matchId: roomCode, text, senderName: newMsg.senderName });
-        setMessages((prev) => [...prev, newMsg]);
     };
 
     // Toggle Ready State
@@ -199,9 +101,6 @@ const Match = () => {
                                 <span className="text-xs font-mono uppercase tracking-widest text-cyan-400 font-bold px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">
                                     LOBBY ACTIVE
                                 </span>
-                                <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">
-                                    • REAL-TIME CHAT ROOM
-                                </span>
                             </div>
                             <h1 className="text-2xl md:text-3xl font-black uppercase tracking-wider text-white mt-0.5">
                                 MATCH ARENA LOBBY
@@ -232,11 +131,11 @@ const Match = () => {
                     </div>
                 </header>
 
-                {/* MAIN CONTENT GRID: PLAYERS & CHAT */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
+                {/* MAIN CONTENT AREA */}
+                <div className="flex justify-center flex-1">
                     
-                    {/* TEAMS SHOWCASE AREA (8 Cols) */}
-                    <div className="lg:col-span-7 flex flex-col space-y-6">
+                    {/* TEAMS SHOWCASE AREA */}
+                    <div className="w-full max-w-4xl flex flex-col space-y-6">
                         
                         {/* TEAM 1 (YOUR SQUAD) */}
                         <div className="bg-gradient-to-br from-cyan-950/40 via-slate-900/60 to-zinc-950 border border-cyan-500/30 rounded-2xl p-5 shadow-xl space-y-4">
@@ -373,87 +272,6 @@ const Match = () => {
 
                     </div>
 
-                    {/* REAL-TIME CHAT ROOM PANEL (5 Cols) */}
-                    <div className="lg:col-span-5 flex flex-col bg-slate-900/80 border border-white/10 rounded-2xl overflow-hidden shadow-2xl max-h-[720px]">
-                        
-                        {/* CHAT HEADER */}
-                        <div className="bg-zinc-950 p-4 border-b border-white/10 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-100">
-                                    Lobby Chat & ID Exchange
-                                </h3>
-                            </div>
-                            <span className="text-[11px] font-mono text-zinc-400 bg-white/5 px-2 py-0.5 rounded border border-white/5">
-                                Live Stream
-                            </span>
-                        </div>
-
-                        {/* QUICK SHARE ACTIONS BAR */}
-                        <div className="bg-zinc-900/60 p-2.5 border-b border-white/5 flex gap-2 overflow-x-auto scrollbar-none">
-                            <button
-                                onClick={() => handleQuickShare(`My Gamer ID / Tag is: Player_${socket.userId || 'Me'}`)}
-                                className="text-[11px] font-mono font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2.5 py-1 rounded-lg shrink-0 transition-colors"
-                            >
-                                📋 Share My Gamer ID
-                            </button>
-                            <button
-                                onClick={() => handleQuickShare(`Lobby Code: ${roomCode}`)}
-                                className="text-[11px] font-mono font-semibold bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2.5 py-1 rounded-lg shrink-0 transition-colors"
-                            >
-                                🔑 Share Room Code
-                            </button>
-                        </div>
-
-                        {/* MESSAGES STREAM */}
-                        <div className="flex-1 p-4 space-y-3 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 bg-zinc-950/50 min-h-[380px]">
-                            {messages.map((msg) => (
-                                <div key={msg.id} className="space-y-1">
-                                    {msg.isSystem ? (
-                                        <div className="bg-cyan-950/30 border border-cyan-500/20 rounded-xl p-2.5 text-xs text-cyan-300 font-mono space-y-0.5">
-                                            <div className="flex items-center justify-between text-[10px] text-cyan-400/70 font-bold uppercase tracking-wider">
-                                                <span>{msg.senderName}</span>
-                                                <span>{msg.timestamp}</span>
-                                            </div>
-                                            <p className="leading-relaxed">{msg.text}</p>
-                                        </div>
-                                    ) : (
-                                        <div className={`p-3 rounded-xl max-w-[90%] text-xs space-y-1 border ${
-                                            msg.senderId === (socket.userId || "YOU")
-                                                ? "ml-auto bg-cyan-950/60 border-cyan-500/30 text-cyan-100"
-                                                : "mr-auto bg-zinc-900 border-white/10 text-slate-200"
-                                        }`}>
-                                            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 gap-3 border-b border-white/5 pb-1">
-                                                <span className="font-bold text-cyan-400">{msg.senderName}</span>
-                                                <span>{msg.timestamp}</span>
-                                            </div>
-                                            <p className="leading-relaxed break-words">{msg.text}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                            <div ref={chatEndRef} />
-                        </div>
-
-                        {/* CHAT INPUT FORM */}
-                        <form onSubmit={handleSendMessage} className="p-3 bg-zinc-950 border-t border-white/10 flex gap-2">
-                            <input
-                                type="text"
-                                value={inputText}
-                                onChange={(e) => setInputText(e.target.value)}
-                                placeholder="Type a message or share in-game ID..."
-                                className="flex-1 bg-zinc-900 border border-white/10 focus:border-cyan-400 text-xs text-slate-100 rounded-xl px-3.5 py-2.5 outline-none transition-colors placeholder-zinc-500"
-                            />
-                            <button
-                                type="submit"
-                                disabled={!inputText.trim()}
-                                className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-zinc-950 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all shadow-md shrink-0 cursor-pointer"
-                            >
-                                Send
-                            </button>
-                        </form>
-
-                    </div>
 
                 </div>
 
