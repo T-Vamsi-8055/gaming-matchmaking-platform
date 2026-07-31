@@ -58,7 +58,7 @@ const PartyRoom = () => {
         setParty(partyData.party);
         setMessages(partyData.messages || []);
         socket.emit("open-party", partyData.party.id);
-        
+
       } catch (error) {
         console.error("Error fetching party:", error);
       }
@@ -164,7 +164,6 @@ const PartyRoom = () => {
         return;
       }
 
-      if (!livePartyState.game || !livePartyState.queueType) return;
       const newState = livePartyState.readyMembers;
       newState.push(userId);
       setIsReady(true);
@@ -234,134 +233,141 @@ const PartyRoom = () => {
   const allMembersReady = livePartyState.readyMembers.length === livePartyState.members.length && livePartyState.members.length > 0;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans p-6 space-y-6 max-w-3xl mx-auto">
+    <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-400 relative overflow-hidden">
 
-      {/* Party Header */}
-      <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-2xl p-5 shadow-xl">
-        <div className="space-y-1 text-left">
-          <h1 className="text-xl font-black tracking-wider uppercase text-slate-100">{party.party_name}</h1>
-          <div className="flex items-center gap-2">
-            <Badge size="sm" variant="info">Code: {party.invite_code}</Badge>
-            <Badge size="sm" variant={party.visibility === "PUBLIC" ? "success" : "warning"}>{party.visibility}</Badge>
-          </div>
-        </div>
-        <Button onClick={handleLeaveParty} variant="danger" size="sm">
-          Leave Party
-        </Button>
-      </div>
+      {/* Main Content Area */}
+      <div className="max-w-[1600px] mx-auto px-4 pt-20 pb-12 flex justify-center relative z-10">
+        <main className="w-full max-w-3xl space-y-6">
 
-      {/* Members */}
-      <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3 shadow-xl">
-        <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400 text-left">Members</h2>
-        <div className="space-y-2">
-          {party.members.map((member) => (
-            <div key={member.userId} className="flex items-center justify-between bg-zinc-900/60 border border-white/10 rounded-xl p-3">
-              <span className="text-sm font-bold text-slate-200">{member.username}</span>
+          {/* Party Header */}
+          <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-2xl p-5 shadow-xl">
+            <div className="space-y-1 text-left">
+              <h1 className="text-xl font-black tracking-wider uppercase text-slate-100">{party.party_name}</h1>
               <div className="flex items-center gap-2">
-                {Number(member.userId) === Number(party.leader_id) && (
-                  <Badge size="sm" variant="warning">👑 Host</Badge>
-                )}
-                <span className="text-xs font-mono text-zinc-500">#{member.userId}</span>
+                <Badge size="sm" variant="info">Code: {party.invite_code}</Badge>
+                <Badge size="sm" variant={party.visibility === "PUBLIC" ? "success" : "warning"}>{party.visibility}</Badge>
               </div>
             </div>
-          ))}
-        </div>
-      </section>
+            <Button onClick={handleLeaveParty} variant="danger" size="sm">
+              Leave Party
+            </Button>
+          </div>
 
-      {/* Game & Queue Selection */}
-      <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
-        <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400 text-left">Match Settings</h2>
-        {isHost ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="text-left space-y-1.5">
-              <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Preferred Game</label>
-              <select
-                name="game"
-                value={livePartyState.game}
-                onChange={handleLivePartyStateChange}
-                className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-xl p-2.5 outline-none transition-all duration-200 text-sm cursor-pointer"
+          {/* Members */}
+          <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3 shadow-xl">
+            <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400 text-left">Members</h2>
+            <div className="space-y-2">
+              {party.members.map((member) => (
+                <div key={member.userId} className="flex items-center justify-between bg-zinc-900/60 border border-white/10 rounded-xl p-3">
+                  <span className="text-sm font-bold text-slate-200">{member.username}</span>
+                  <div className="flex items-center gap-2">
+                    {Number(member.userId) === Number(party.leader_id) && (
+                      <Badge size="sm" variant="warning">👑 Host</Badge>
+                    )}
+                    <span className="text-xs font-mono text-zinc-500">#{member.userId}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Game & Queue Selection */}
+          <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
+            <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400 text-left">Match Settings</h2>
+            {isHost ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="text-left space-y-1.5">
+                  <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Preferred Game</label>
+                  <select
+                    name="game"
+                    value={livePartyState.game}
+                    onChange={handleLivePartyStateChange}
+                    className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-xl p-2.5 outline-none transition-all duration-200 text-sm cursor-pointer"
+                  >
+                    <option value="">Select Game...</option>
+                    {AVAILABLE_GAMES.map((g) => (
+                      <option key={g.slug} value={g.slug}>{g.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="text-left space-y-1.5">
+                  <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Queue Type</label>
+                  <select
+                    name="queueType"
+                    value={livePartyState.queueType}
+                    onChange={handleLivePartyStateChange}
+                    className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-xl p-2.5 outline-none transition-all duration-200 text-sm cursor-pointer"
+                  >
+                    <option value="">Select Queue Type...</option>
+                    <option value="1">Solo</option>
+                    <option value="2">Duo</option>
+                    <option value="4">Squad</option>
+                  </select>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Badge variant="info">Game: {livePartyState.game || "Not selected"}</Badge>
+                <Badge variant="info">Queue: {livePartyState.queueType || "Not selected"}</Badge>
+              </div>
+            )}
+          </section>
+
+          {/* Ready Status & Start */}
+          <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1 text-left">
+                <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400">Party Status</h2>
+                <div className="flex items-center gap-2">
+                  <Badge variant={allMembersReady ? "success" : "warning"}>
+                    {allMembersReady ? "All Ready" : "Waiting"}
+                  </Badge>
+                  <span className="text-xs font-mono text-zinc-400">
+                    {livePartyState.readyMembers.length}/{livePartyState.members.length} ready
+                  </span>
+                </div>
+              </div>
+              <Button
+                onClick={handleStartMatch}
+                disabled={allMembersReady}
+                variant={isReady ? "danger" : "success"}
               >
-                <option value="">Select Game...</option>
-                {AVAILABLE_GAMES.map((g) => (
-                  <option key={g.slug} value={g.slug}>{g.label}</option>
-                ))}
-              </select>
+                {(allMembersReady && isReady) ? "Everyone Ready" : (!allMembersReady && isReady) ? "Exit Match" : "Start Match"}
+              </Button>
+            </div>
+          </section>
+
+          {/* Party Chat */}
+          <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
+            <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400 text-left">Party Chat</h2>
+
+            <div className="max-h-60 overflow-y-auto space-y-2 text-left scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+              {messages.map((item) => (
+                <div key={item.id} className="bg-zinc-900/60 border border-white/5 rounded-xl p-3">
+                  <span className="text-xs font-bold text-cyan-400">{item.username}</span>
+                  <span className="text-xs text-zinc-500 ml-1 font-mono">#{item.userId}</span>
+                  <p className="text-sm text-slate-300 mt-0.5">{item.message}</p>
+                </div>
+              ))}
             </div>
 
-            <div className="text-left space-y-1.5">
-              <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Queue Type</label>
-              <select
-                name="queueType"
-                value={livePartyState.queueType}
-                onChange={handleLivePartyStateChange}
-                className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-xl p-2.5 outline-none transition-all duration-200 text-sm cursor-pointer"
-              >
-                <option value="">Select Queue Type...</option>
-                <option value="1">Solo</option>
-                <option value="2">Duo</option>
-                <option value="4">Squad</option>
-              </select>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <Badge variant="info">Game: {livePartyState.game || "Not selected"}</Badge>
-            <Badge variant="info">Queue: {livePartyState.queueType || "Not selected"}</Badge>
-          </div>
-        )}
-      </section>
+            <form onSubmit={handleSendMessage} className="flex gap-2">
+              <Input
+                name="chatMessage"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-1"
+              />
+              <Button type="submit" size="md" variant="secondary">
+                Send
+              </Button>
+            </form>
+          </section>
 
-      {/* Ready Status & Start */}
-      <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1 text-left">
-            <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400">Party Status</h2>
-            <div className="flex items-center gap-2">
-              <Badge variant={allMembersReady ? "success" : "warning"}>
-                {allMembersReady ? "All Ready" : "Waiting"}
-              </Badge>
-              <span className="text-xs font-mono text-zinc-400">
-                {livePartyState.readyMembers.length}/{livePartyState.members.length} ready
-              </span>
-            </div>
-          </div>
-          <Button
-            onClick={handleStartMatch}
-            disabled={allMembersReady}
-            variant={isReady ? "danger" : "success"}
-          >
-            {(allMembersReady && isReady) ? "Everyone Ready" : (!allMembersReady && isReady) ? "Exit Match" : "Start Match"}
-          </Button>
-        </div>
-      </section>
-
-      {/* Party Chat */}
-      <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
-        <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400 text-left">Party Chat</h2>
-
-        <div className="max-h-60 overflow-y-auto space-y-2 text-left scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-          {messages.map((item) => (
-            <div key={item.id} className="bg-zinc-900/60 border border-white/5 rounded-xl p-3">
-              <span className="text-xs font-bold text-cyan-400">{item.username}</span>
-              <span className="text-xs text-zinc-500 ml-1 font-mono">#{item.userId}</span>
-              <p className="text-sm text-slate-300 mt-0.5">{item.message}</p>
-            </div>
-          ))}
-        </div>
-
-        <form onSubmit={handleSendMessage} className="flex gap-2">
-          <Input
-            name="chatMessage"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1"
-          />
-          <Button type="submit" size="md" variant="secondary">
-            Send
-          </Button>
-        </form>
-      </section>
+        </main>
+      </div>
     </div>
   );
 };
