@@ -7,21 +7,31 @@ const Match = () => {
     const navigate = useNavigate();
     const chatEndRef = useRef(null);
 
-    // Retrieve teams from location state or construct demo teams if testing directly
-    const rawTeams = location.state?.gameTeam || location.state?.matchData?.teams || [];
+    // Retrieve teams from location state
+    const rawTeams = location.state?.gameTeam || location.state?.matchData?.teams;
 
+    // Default testing array (kept intact for demo mode)
     const defaultTeams = [
         [
-            { userId: "101", gameScore: 820, username: "ShadowViper", rank: "Ascendant" },
-            { userId: "102", gameScore: 640, username: "CyberKnight", rank: "Diamond" }
+            { userId: "101", gamerId: "ShadowViper#NA1", gameScore: 820, username: "ShadowViper", rank: "Ascendant" },
+            { userId: "102", gamerId: "CyberKnight#EUW", gameScore: 640, username: "CyberKnight", rank: "Diamond" }
         ],
         [
-            { userId: "201", gameScore: 790, username: "NexusReaper", rank: "Ascendant" },
-            { userId: "202", gameScore: 610, username: "GhostRider", rank: "Platinum" }
+            { userId: "201", gamerId: "NexusReaper#KR1", gameScore: 790, username: "NexusReaper", rank: "Ascendant" },
+            { userId: "202", gamerId: "GhostRider#OCE", gameScore: 610, username: "GhostRider", rank: "Platinum" }
         ]
     ];
 
-    const teams = rawTeams.length >= 2 ? rawTeams : (rawTeams.length === 1 ? [rawTeams[0], []] : defaultTeams);
+    // Priority: Real backend data first -> location.state.players -> default test arrays
+    const rawPlayersList = location.state?.players;
+    const teams = rawTeams && rawTeams.length > 0
+        ? (rawTeams.length >= 2 ? rawTeams : [rawTeams[0], []])
+        : defaultTeams;
+
+    // Use backend players list if passed directly, otherwise flatten teams array
+    const players = (rawPlayersList && rawPlayersList.length > 0)
+        ? rawPlayersList
+        : (rawTeams && rawTeams.length > 0 ? rawTeams.flat() : teams.flat());
 
     const [inputText, setInputText] = useState("");
     const [isReady, setIsReady] = useState(false);
@@ -29,7 +39,7 @@ const Match = () => {
     const [roomCode] = useState(() => "MATCH-" + Math.floor(100000 + Math.random() * 900000));
     const [readyPlayers, setReadyPlayers] = useState({});
 
-    // Calculate rank title from score if not provided
+    // Calculate rank title from score if rank/title is not explicitly provided
     const getRankFromScore = (score) => {
         if (!score) return "Silver";
         if (score >= 900) return "Radiant";
@@ -110,18 +120,6 @@ const Match = () => {
 
                     {/* Room Code & Leave Action */}
                     <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                        <div className="flex items-center bg-zinc-950 border border-white/10 rounded-xl px-3 py-1.5 font-mono text-xs text-zinc-300 gap-2">
-                            <span className="text-zinc-500 uppercase">ROOM CODE:</span>
-                            <span className="font-bold text-cyan-400 tracking-wider">{roomCode}</span>
-                            <button 
-                                onClick={handleCopyCode} 
-                                className="ml-1 text-xs bg-white/5 hover:bg-white/10 hover:text-white px-2 py-1 rounded transition-colors"
-                                title="Copy Room Code"
-                            >
-                                {copied ? "✓ Copied" : "📋 Copy"}
-                            </button>
-                        </div>
-
                         <button
                             onClick={handleExitLobby}
                             className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200"
@@ -134,31 +132,34 @@ const Match = () => {
                 {/* MAIN CONTENT AREA */}
                 <div className="flex justify-center flex-1">
                     
-                    {/* TEAMS SHOWCASE AREA */}
+                    {/* PLAYERS SHOWCASE AREA */}
                     <div className="w-full max-w-4xl flex flex-col space-y-6">
                         
-                        {/* TEAM 1 (YOUR SQUAD) */}
+                        {/* 4-PLAYER GRID CONTAINER */}
                         <div className="bg-gradient-to-br from-cyan-950/40 via-slate-900/60 to-zinc-950 border border-cyan-500/30 rounded-2xl p-5 shadow-xl space-y-4">
                             <div className="flex items-center justify-between border-b border-cyan-500/20 pb-3">
                                 <div className="flex items-center gap-2">
                                     <span className="w-3 h-3 rounded-full bg-cyan-400 animate-pulse" />
                                     <h2 className="font-black text-lg uppercase tracking-wider text-cyan-300">
-                                        TEAM 1 (BLUE SQUAD)
+                                        MATCH PLAYERS
                                     </h2>
                                 </div>
                                 <span className="text-xs font-mono text-cyan-400/80 bg-cyan-500/10 px-2.5 py-0.5 rounded-full border border-cyan-500/20">
-                                    {teams[0]?.length || 0} PLAYERS
+                                    {players.length} PLAYERS
                                 </span>
                             </div>
 
+                            {/* 2x2 Grid Layout for 4 Players */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {teams[0]?.map((member, idx) => {
-                                    const rankName = member.rank || getRankFromScore(member.gameScore);
-                                    const isPlayerReady = readyPlayers[member.userId] || (idx === 0 && isReady);
+                                {players.map((member, idx) => {
+                                    // Handles backend vs testing object keys smoothly
+                                    const usernameDisplay = member.username || member.name || `User #${member.userId || idx + 1}`;
+                                    const rankName = member.rank || member.title || getRankFromScore(member.gameScore);
+                                    const gamerIdDisplay = member.gamerId || member.gameId || `ID#${member.userId || idx}`;
 
                                     return (
                                         <div 
-                                            key={member.userId || idx}
+                                            key={member.userId || member.id || idx}
                                             className="bg-zinc-950/80 border border-cyan-500/20 hover:border-cyan-400/50 rounded-xl p-4 flex items-center justify-between transition-all duration-200 group"
                                         >
                                             <div className="flex items-center gap-3">
@@ -167,111 +168,25 @@ const Match = () => {
                                                 </div>
                                                 <div>
                                                     <div className="font-bold text-slate-100 group-hover:text-cyan-400 transition-colors text-sm">
-                                                        {member.username || `User #${member.userId}`}
+                                                        {usernameDisplay}
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-0.5">
                                                         <span className={`text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-gradient-to-r ${getRankColor(rankName)} border`}>
                                                             {rankName}
                                                         </span>
                                                         <span className="text-[11px] font-mono text-zinc-400">
-                                                            Score: <strong className="text-slate-200">{member.gameScore}</strong>
+                                                            Gamer ID: <strong className="text-slate-200">{gamerIdDisplay}</strong>
                                                         </span>
                                                     </div>
                                                 </div>
-                                            </div>
-
-                                            <div className="text-right">
-                                                <span className={`text-[10px] font-mono uppercase font-bold tracking-widest px-2 py-1 rounded border ${isPlayerReady ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>
-                                                    {isPlayerReady ? '✓ READY' : 'WAITING'}
-                                                </span>
                                             </div>
                                         </div>
                                     );
                                 })}
                             </div>
-                        </div>
-
-                        {/* VS DIVIDER */}
-                        <div className="relative flex items-center justify-center my-1">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-white/10" />
-                            </div>
-                            <div className="relative z-10 px-4 py-1 rounded-full bg-zinc-900 border border-white/20 text-cyan-400 font-black font-mono text-xs uppercase tracking-widest shadow-lg">
-                                ⚔️ MATCHUP VERSUS ⚔️
-                            </div>
-                        </div>
-
-                        {/* TEAM 2 (RED SQUAD) */}
-                        <div className="bg-gradient-to-br from-purple-950/40 via-slate-900/60 to-zinc-950 border border-purple-500/30 rounded-2xl p-5 shadow-xl space-y-4">
-                            <div className="flex items-center justify-between border-b border-purple-500/20 pb-3">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-3 h-3 rounded-full bg-purple-400 animate-pulse" />
-                                    <h2 className="font-black text-lg uppercase tracking-wider text-purple-300">
-                                        TEAM 2 (RED SQUAD)
-                                    </h2>
-                                </div>
-                                <span className="text-xs font-mono text-purple-400/80 bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20">
-                                    {teams[1]?.length || 0} PLAYERS
-                                </span>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {teams[1]?.map((member, idx) => {
-                                    const rankName = member.rank || getRankFromScore(member.gameScore);
-                                    const isPlayerReady = readyPlayers[member.userId];
-
-                                    return (
-                                        <div 
-                                            key={member.userId || idx}
-                                            className="bg-zinc-950/80 border border-purple-500/20 hover:border-purple-400/50 rounded-xl p-4 flex items-center justify-between transition-all duration-200 group"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center font-bold text-purple-400 font-mono text-sm">
-                                                    E{idx + 1}
-                                                </div>
-                                                <div>
-                                                    <div className="font-bold text-slate-100 group-hover:text-purple-400 transition-colors text-sm">
-                                                        {member.username || `User #${member.userId}`}
-                                                    </div>
-                                                    <div className="flex items-center gap-2 mt-0.5">
-                                                        <span className={`text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-gradient-to-r ${getRankColor(rankName)} border`}>
-                                                            {rankName}
-                                                        </span>
-                                                        <span className="text-[11px] font-mono text-zinc-400">
-                                                            Score: <strong className="text-slate-200">{member.gameScore}</strong>
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="text-right">
-                                                <span className={`text-[10px] font-mono uppercase font-bold tracking-widest px-2 py-1 rounded border ${isPlayerReady ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>
-                                                    {isPlayerReady ? '✓ READY' : 'WAITING'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* READY UP ACTION BUTTON */}
-                        <div className="pt-2">
-                            <button
-                                onClick={handleToggleReady}
-                                className={`w-full py-4 rounded-xl font-black uppercase tracking-widest transition-all duration-300 shadow-xl cursor-pointer transform active:scale-[0.99] flex items-center justify-center gap-2 text-sm ${
-                                    isReady 
-                                        ? "bg-emerald-500 text-zinc-950 hover:bg-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.4)]" 
-                                        : "bg-gradient-to-r from-cyan-500 to-blue-600 text-black hover:from-cyan-400 hover:to-blue-500 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
-                                }`}
-                            >
-                                <span>{isReady ? "✓ YOU ARE READY!" : "READY UP NOW"}</span>
-                                <span className="font-normal text-xs opacity-75">({isReady ? "Click to un-ready" : "Signal squad"})</span>
-                            </button>
                         </div>
 
                     </div>
-
 
                 </div>
 
