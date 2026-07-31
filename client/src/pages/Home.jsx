@@ -175,10 +175,11 @@ localStorage.removeItem("jwt-auth-token");
     <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-400">
       <Navbar user={user} onLogout={handleLogOut} />
       {/*Main Layout*/}
-      <div className="max-w-[1600px] mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="max-w-[1600px] mx-auto px-4 py-6 flex flex-col items-center justify-center">
 
         {/*MAIN CONTENT AREA (Center Columns)*/}
-        <main className="col-span-1 lg:col-span-2 space-y-8">
+        <main className="w-full max-w-2xl space-y-8">
+
           
           {/* Welcome*/}
          
