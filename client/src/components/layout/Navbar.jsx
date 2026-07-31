@@ -28,16 +28,16 @@ export const Navbar = ({ onLogout }) => {
           Home
         </button>
         <button 
-          onClick={() => navigate("/party")} 
-          className="hover:bg-neutral-800 text-xs font-mono tracking-widest text-zinc-300 uppercase bg-neutral-900 border border-neutral-700 px-3 py-1 rounded transition-colors cursor-pointer"
-        >
-          Parties
-        </button>
-        <button 
           onClick={() => navigate("/profile")} 
           className="hover:bg-neutral-800 text-xs font-mono tracking-widest text-zinc-300 uppercase bg-neutral-900 border border-neutral-700 px-3 py-1 rounded transition-colors cursor-pointer"
         >
           Profile
+        </button>
+        <button 
+          onClick={() => navigate("/party")} 
+          className="hover:bg-neutral-800 text-xs font-mono tracking-widest text-zinc-300 uppercase bg-neutral-900 border border-neutral-700 px-3 py-1 rounded transition-colors cursor-pointer"
+        >
+          Parties
         </button>
       </div>
 
