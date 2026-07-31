@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import "./isLogin.css";
+import "../style/isLogin.css";
 import {useNavigate} from 'react-router-dom';
-import { socket } from "./socket";
-const API_PORT = 3000;
+import { socket } from "../services/socket";
+import { API_PORT } from "../utils/constants";
 
 export default function USERLOGANDREG() {
   const navigate = useNavigate();

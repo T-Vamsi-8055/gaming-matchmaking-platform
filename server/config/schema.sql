@@ -67,9 +67,58 @@ CREATE TABLE IF NOT EXISTS mock_game_data (
     UNIQUE(gamer_id, game_name)
 );
 
+--Party data
+CREATE TABLE if not exists parties (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    party_name VARCHAR(50) NOT NULL,
+    invite_code VARCHAR(8) UNIQUE NOT NULL,
+    leader_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    visibility VARCHAR(10) NOT NULL DEFAULT 'PUBLIC',
+    status VARCHAR(20) NOT NULL DEFAULT 'OPEN',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT valid_visibility
+        CHECK (visibility IN ('PUBLIC', 'PRIVATE')),
+
+    CONSTRAINT valid_status
+        CHECK (status IN ('OPEN', 'CLOSED'))
+);
+
+--Party members
+CREATE TABLE if not exists party_members (
+    party_id UUID NOT NULL REFERENCES parties(id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (party_id, user_id)
+);
+
+
+--Party Messages
+CREATE TABLE party_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    party_id UUID NOT NULL
+        REFERENCES parties(id)
+        ON DELETE CASCADE,
+
+    user_id INT NOT NULL
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    message TEXT NOT NULL
+        CHECK (length(trim(message)) > 0),
+
+    created_at TIMESTAMP WITH TIME ZONE
+        DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ===========================
 -- INDEXES
 -- ===========================
+
+CREATE INDEX idx_party_messages_party_id_created_at
+ON party_messages(party_id, created_at);
 
 CREATE INDEX IF NOT EXISTS idx_users_email
 ON users(email);

@@ -1,289 +1,427 @@
-import {Server } from "socket.io";
-import { jwtVerify } from "../config/jwt.js";
+import { Server } from "socket.io";
 import { pool } from "../config/db.js";
 
-const matchSize=4;
-class queueObj{
-    constructor(){
-        this.gameScore=0;
-        this.userId="";
-        this.joinTime=0;
-        this.queueType=0;
-    }
-    setGameScore(value){
-        this.gameScore=value;
-    }
-    setUserId(value){
-        this.userId=value;
-    }
-    setJoinTime(value){
-        this.joinTime=value;
-    }
-    setQueueType(value){
-        this.queueType=value;
-    }
-    getQueueType(){
-        return this.queueType;
-    }
-    getGameScore(){
-        return this.gameScore;
-    }
-    getUserId(){
-        return this.userId;    
-    }
-    getJoinTime(){
-        return this.joinTime;    
-    }
-}
-let finalMatches=[];
-class queue{
-    constructor(game,queueType){
-        this.queueArray=[];
-        this.gameName=game;
-        this.queueType=queueType;
-    }
-    addUserToQueue(queueObj){
-        let objPos=0;
-        for(let i=0;i<this.queueArray.length;i++){
-            if(this.queueArray[i].getGameScore()<queueObj.getGameScore())objPos++;
-            else break;
-        }
-        this.queueArray.splice(objPos,0,queueObj);
-    }
-    deleteUserFromQueue(userId){
-        
-        for(let i=0;i<this.queueArray.length;i++){
-            if(this.queueArray[i].getUserId()==userId){
-                this.queueArray.splice(i,1);
-                break;
-            }
-            
-        }
-        
-    }
-    deleteMatchUsersFromQueue(userId){
-        
-        for(let i=0;i<this.queueArray.length;i++){
-            if(this.queueArray[i].getUserId()==userId){
-                this.queueArray.splice(i,matchSize);
-                break;
-            }
-            
-        }
-        
-    }
-    checkBestMatch(){
-        for(let i=0;i<(this.queueArray.length-matchSize+1);i++){
-            let maxTime=0;
-            for(let k=i;k<i+matchSize;k++){
-                const presentUserTime=Date.now()-this.queueArray[k].getJoinTime();
-                if(presentUserTime>maxTime)maxTime=presentUserTime;
-            }
-            const penaltyRangeValue=penaltyRange(maxTime);
-            let matchConditions=false;
-            for(let k=i;k<i+matchSize-1;k++){
-                if((this.queueArray[k].getGameScore()-this.queueArray[k+1].getGameScore())<penaltyRangeValue){
-                    matchConditions=true;
-                }else{ matchConditions=false;break;}
-            }
-            if(matchConditions){    
-                let finalArray=[];
-                for(let k=i;k<i+matchSize;k++){
-                    finalArray.push(this.queueArray[k])
-                }
-                const finalDividedArray=teamDivider(finalArray);
-                finalMatches.push(finalDividedArray)
-                this.deleteMatchUsersFromQueue(this.queueArray[i].getUserId());
-            }
-            
-        }
-    }
-    getGameName(){return this.gameName;}
-    getQueueType(){return this.queueType;}
-    getNumberOfPlayers(){return this.queueArray.length}
-}
-function penaltyRange(time){
-    if(time<10000)return 50;
-    if(time<20000)return 100;
-    if(time<30000)return 200;
-    if(time<45000)return 300;
-    return 1000000;
-}
+import queue from "./queueClass.js";
+import queueObj from "./queueObjClass.js";
+import partyClass from "./partyClass.js";
+import {createPartyMatchmakingObject,getPartyLeader,getPartyMembers,findQueue} from "./socketServerFunctions.js/helperFns.js"
+import { middleWareFn } from "./socketServerFunctions.js/middleWareFn.js";
 
-const lengthOfGames=5;
-const lengthOfQueueTypes=3;
+import { FindGameScore, finalMatches,lengthOfGames,lengthOfQueueTypes } from "./GameLogic.js";
+import { setIntervalFn } from "./socketServerFunctions.js/setIntervalFn.js";
+
+
+
+const gamesArray = ["valorant", "cs2", "lol", "dota2", "apex"];
+
+const queueTypeArray = [1, 2, 4];
+
+// --------------------------------------------------
+// MATCHMAKING QUEUE GRID
+// --------------------------------------------------
 
 const grid = Array.from({ length: lengthOfGames }, () =>
-    Array.from({ length: lengthOfQueueTypes }, () => new queue("", 0))
+  Array.from({ length: lengthOfQueueTypes }, () => new queue("", 0)),
 );
 
-const gamesArray=["valorant","cs2","lol","dota2","apex"];
-const queueTypeArray=[1,2,4]
-for(let i=0;i<lengthOfGames;i++){
-    
-    for(let j=0;j<lengthOfQueueTypes;j++){
-    grid[i][j]=new queue(gamesArray[i],queueTypeArray[j]);
-    }
-    
+for (let i = 0; i < lengthOfGames; i++) {
+  for (let j = 0; j < lengthOfQueueTypes; j++) {
+    grid[i][j] = new queue(gamesArray[i], queueTypeArray[j]);
+  }
 }
 
-function FindGameScore(player){
-    const rankWeight = {
-        "Iron": 100,
-        "Bronze": 200,
-        "Silver": 300,
-        "Gold": 400,
-        "Gold Nova": 450,
-        "Platinum": 500,
-        "Diamond": 650,
-        "Ascendant": 800,
-        "Master": 850,
-        "Immortal": 950,
-        "Radiant": 1000
-    };
+// --------------------------------------------------
+// ONLINE USERS
+// --------------------------------------------------
 
-    const rankScore = rankWeight[player.rank] || 0;
+const onlineUsersMap = new Map();
 
-    const winRate =
-        player.games_played === 0
-            ? 0
-            : player.wins / player.games_played;
 
-    return (
-        rankScore +
-        player.skill_rating +
-        winRate * 300 +
-        Math.min(player.games_played, 200) * 0.5
-    );
 
-}
-function teamDivider(finalArray){
-    if(finalArray[0].getQueueType()==1){
-        return [
-            [finalArray[0]],[ finalArray[2]],
-            [finalArray[1]],[finalArray[3]]
-        ];
-    }
-
-    if(finalArray[0].getQueueType()==2){
-        return [
-            [finalArray[0], finalArray[2]],
-            [finalArray[1], finalArray[3]]
-        ];
-    }
-
-    return [];
-}
-
-function startMatch(gameMatch,queueType,io){
-    if(queueType==1){
-        gameMatch.forEach((solo)=>{
-            io.to(solo[0].getUserId()).emit("joined-match",gameMatch);
-        })
-    }
-    if(queueType==2){
-        gameMatch.forEach((duo)=>{
-            io.to(duo[0].getUserId()).emit("joined-match",gameMatch);
-            io.to(duo[1].getUserId()).emit("joined-match",gameMatch);
-        })
-    }
-    if(queueType==4){
-        gameMatch.forEach((squad)=>{
-            io.to(squad[0].getUserId()).emit("joined-match",gameMatch);
-            io.to(squad[1].getUserId()).emit("joined-match",gameMatch);
-            io.to(squad[2].getUserId()).emit("joined-match",gameMatch);
-            io.to(squad[3].getUserId()).emit("joined-match",gameMatch);
-        })
-    }
-}
-
-const onlineUsersMap=new Map();
+const livePartyState=new Map();
+// --------------------------------------------------
+// SOCKET INITIALIZATION
+// --------------------------------------------------
 
 export function initializeSocket(server) {
-    const io = new Server(server, {
-        cors: {
-            origin: "http://localhost:5173",
-            credentials: true
+  const io = new Server(server, {
+    cors: {
+      origin: "http://localhost:5173",
+      credentials: true,
+    },
+  });
+
+  // --------------------------------------------------
+  // SOCKET AUTHENTICATION
+  // --------------------------------------------------
+
+  io.use( middleWareFn);
+
+  // --------------------------------------------------
+  // MATCHMAKING SCANNER
+  // --------------------------------------------------
+
+  setInterval(async () => {setIntervalFn(grid,io)}, 3000);
+
+  // --------------------------------------------------
+  // CONNECTION
+  // --------------------------------------------------
+
+  io.on("connection", (socket) => {
+    console.log("Socket connected with userId", socket.userId);
+
+    onlineUsersMap.set(String(socket.userId), socket.id);
+
+    /*
+     * Every user gets a private room.
+     *
+     * This allows:
+     *
+     * io.to(userId).emit(...)
+     *
+     * to send a match notification
+     * to that specific user.
+     */
+
+    socket.join(String(socket.userId));
+
+    // --------------------------------------------------
+    // DISCONNECT
+    // --------------------------------------------------
+
+    socket.on("disconnect", (reason) => {
+      console.log(
+        "Socket disconnected with userId",
+        socket.userId,
+        "Reason:",
+        reason,
+      );
+
+      onlineUsersMap.delete(String(socket.userId));
+      for(let i=0;i<grid.length;i++){
+        for(let j=0;j<grid[i].length;j++){
+          grid[i][j].deletePartyFromQueue(`user:${socket.userId}`);
         }
+      }
     });
-    
-    io.use((socket, next) => {
-    const token = socket.handshake.auth.token;
 
-    if (!token) {
-        return next(new Error("No token"));
-    }
+    // --------------------------------------------------
+    // JOIN PARTY ROOM
+    // --------------------------------------------------
 
-    const decoded = jwtVerify(token);
-
-    if (!decoded) {
-        return next(new Error("Invalid token"));
-    }
-
-    socket.userId = decoded.id;
-    next();
-});
-    setInterval(()=>{
-            for(let i=0;i<lengthOfGames;i++){
-                for(let j=0;j<lengthOfQueueTypes;j++){
-                    grid[i][j].checkBestMatch()
-                }
-            }
-            finalMatches.forEach((gameMatch)=>{
-                const queueType=gameMatch[0][0].getQueueType();
-                startMatch(gameMatch,queueType,io);
-                
-            })
-            finalMatches=[];
-        },3000)
-    io.on("connection",(socket)=>{
-        console.log("Socket connected with userId",socket.userId);
-        onlineUsersMap.set(socket.userId,socket.id);
-        socket.join(socket.userId)
-        socket.on("disconnect",(reason)=>{
-        console.log("Socket disconnected with userId",socket.userId,"Reason:",reason);
-        onlineUsersMap.delete(socket.userId)
-        socket.leave(socket.userId);
-        })
+    socket.on("join-party-room", async (partyId) => {
+      try {
         
-        socket.on("join-queue",async (game,queueType)=>{
-            let found = false;
+        if(!livePartyState.get(partyId))return;
+        socket.join(`party:${partyId}`);
+        if(!livePartyState.get(partyId).members.includes(socket.userId)){
+        const newState=livePartyState.get(partyId);
+if (!newState.members.includes(socket.userId)) newState.members.push(socket.userId);
 
-            try{
-            for(let i=0;i<lengthOfGames && !found;i++){
-                for(let j=0;j<lengthOfQueueTypes;j++){
-                    if(grid[i][j].getGameName()==game && grid[i][j].getQueueType()==queueType){
+        livePartyState.set(partyId,newState)
+        }
+        console.log(`User ${socket.userId} joined party ${partyId}`);
 
-                        let newQueueObj=new queueObj();
-                        newQueueObj.setJoinTime(Date.now());
-                        const gamerId=await pool.query("select gamer_id from profiles where user_id=$1",[socket.userId]);
-                        const gameDetails=await pool.query("select * from mock_game_data where gamer_id=$1 and game_name=$2",[gamerId.rows[0].gamer_id,game]);
-                        newQueueObj.setGameScore(FindGameScore(gameDetails.rows[0]));
-                        newQueueObj.setUserId(socket.userId);
-                        newQueueObj.setQueueType(queueType);
-                        grid[i][j].addUserToQueue(newQueueObj);
-                        found=true;
-                        console.log("Socket joined with userId",socket.userId,game,queueType);
+        socket.to(`party:${partyId}`).emit("new-member");
+      } catch (error) {
+        console.error("Join party room error:", error);
+      }
+    });
+    socket.on("created-party",(partyId)=>{
+        if (!livePartyState.has(partyId)) {
+        livePartyState.set(partyId, { game: "", queueType: "", members: [socket.userId], readyMembers: [] , leaderId:socket.userId});
+        }
+    })
+    // --------------------------------------------------
+    // LEAVE PARTY ROOM
+    // --------------------------------------------------
 
-                        break;
-                    }
-                }
-            }
-        }catch(err){console.log(err)}
-        })
+    socket.on("leave-party-room", async (partyId) => {
+      if(!livePartyState.get(partyId))return;
+      socket.leave(`party:${partyId}`);
+      const state=livePartyState.get(partyId);
+        const i = state.members.indexOf(socket.userId);
+        if (i !== -1) {
+          state.members.splice(i, 1);
+          const response = await pool.query("select leader_id from parties where id=$1",[partyId]);
+          state.leaderId=response.rows.leader_id;
+          socket.to(`party:${partyId}`).emit("changed-party-state", state);
+        }
+        const j = state.readyMembers.indexOf(socket.userId);
+        if (i !== -1) {
+          state.readyMembers.splice(i, 1);
+          
+          socket.to(`party:${partyId}`).emit("changed-party-state", state);
+        }
+      console.log(`User ${socket.userId} left party ${partyId}`,livePartyState);
+    });
 
-        socket.on("exit-queue",(game,queueType)=>{
+    // --------------------------------------------------
+    // PARTY CHAT
+    // --------------------------------------------------
 
-            for(let i=0;i<lengthOfGames;i++){
-                for(let j=0;j<lengthOfQueueTypes;j++){
-                    if(grid[i][j].getGameName()==game && grid[i][j].getQueueType()==queueType){
-                        grid[i][j].deleteUserFromQueue(socket.userId);
-                        break;
-                    }
-                }
-            }
-        })
+    socket.on("send-party-message", async ({ partyId, message }) => {
+      try {
+        if (!message || !message.trim()) {
+          return;
+        }
+
+        
+
+        const messageResult = await pool.query(
+          `
+                            INSERT INTO party_messages
+                                (
+                                    party_id,
+                                    user_id,
+                                    message
+                                )
+                            VALUES
+                                ($1, $2, $3)
+                            RETURNING
+                                id,
+                                party_id,
+                                user_id,
+                                message,
+                                created_at
+                            `,
+          [partyId, socket.userId, message.trim()],
+        );
+
+        const savedMessage = messageResult.rows[0];
+
+        const userResult = await pool.query(
+          `
+                            SELECT username
+                            FROM users
+                            WHERE id = $1
+                            `,
+          [socket.userId],
+        );
+
+        io.to(`party:${partyId}`).emit("party-message", {
+          id: savedMessage.id,
+
+          partyId: savedMessage.party_id,
+
+          userId: savedMessage.user_id,
+
+          username: userResult.rows[0]?.username || "Unknown",
+
+          message: savedMessage.message,
+
+          createdAt: savedMessage.created_at,
+        });
+      } catch (error) {
+        console.error("Party message error:", error);
+      }
+    });
+
+    
+
+    socket.on("change-party-state", async ({ partyId, partyState }) => {
+      try {
+        console.log(partyState);
+
+        if(livePartyState.has(partyId))livePartyState.set(partyId,partyState);
+        else livePartyState.set(partyId,partyState);
+        console.log(livePartyState);
+        if(!socket.rooms.has(partyId.toString()))socket.join(`party:${partyId}`);
+
+
+        io.to(`party:${partyId}`).emit("changed-party-state", partyState);
+      } catch (error) {
+        console.error("Change queue type error:", error);
+      }
+    });
+    socket.on("open-party",(partyId)=>{
+      
+      if(livePartyState.has(partyId)){
+        io.to(`party:${partyId}`).emit("changed-party-state", livePartyState.get(partyId));
+      console.log( livePartyState);}
+      else {
+        livePartyState.set(partyId, { game: "", queueType: "", members: [socket.userId], readyMembers: [] ,leaderId:socket.userId});
+      }
 
     })
-    
+
+    // --------------------------------------------------
+    // PARTY MEMBER CLICKS START
+    // --------------------------------------------------
+    socket.on("join-user-queue",async (game,queueType)=>{
+      try{
+        const matchmakingQueue = findQueue(game, queueType,grid);
+        console.log(matchmakingQueue);
+          if (!matchmakingQueue) {
+            return;
+          }
+          const userId=socket.userId;
+          
+
+          /*
+           * Create ONE partyClass.
+           *
+           * Not one partyClass
+           * per member.
+           *
+           * The partyClass contains
+           * all queueObj objects.
+           */
+          const members=[{user_id:userId}];
+          const partyObj = await createPartyMatchmakingObject(
+            userId,
+            game,
+            queueType,
+            members,
+          );
+          console.log(partyObj);
+          livePartyState.set(`user:${userId}`,{game,queueType,readyMembers:[userId],members:[userId],leaderId:userId});
+          matchmakingQueue.addPartyToQueue(partyObj);
+
+          console.log(`User ${userId} entered matchmaking queue`, {
+            game,
+            queueType,
+            members: members.length,
+          });
+
+          io.to(String(socket.userId)).emit("joined-user-queue", {
+            userId,
+            game,
+            queueType,
+          });
+        }
+      catch (error) {
+        console.error("Party start error:", error);
+
+        io.to(String(socket.userId)).emit("party-error", {
+          message: "Unable to enter matchmaking.",
+        });
+      }
+    })
+    socket.on("party-click-start", async ({ partyId }) => {
+      try {
+        const state=livePartyState.get(partyId);
+        const readyMembers=state.readyMembers.length;
+        const totalMembers=state.members.length;
+        console.log("in the party click start",livePartyState)
+
+
+        io.to(`party:${partyId}`).emit("changed-party-state",state);
+
+        /*
+         * Everyone is ready.
+         */
+
+        if (readyMembers === totalMembers) {
+          
+
+          
+
+          const game = livePartyState.get(partyId).game;
+
+          const queueType = livePartyState.get(partyId).queueType;
+
+          if (!game || !queueType) {
+            io.to(`party:${partyId}`).emit("connect-error", {
+              message:
+                "Game and queue type must be selected before matchmaking.",
+            });
+
+            return;
+          }
+
+          const matchmakingQueue = findQueue(game, queueType,grid);
+          console.log(matchmakingQueue);
+          if (!matchmakingQueue) {
+            return;
+          }
+
+          const members = state.members.map(mem=>({user_id:mem}));
+          console.log(members)
+          if (members.length === 0) {
+            return;
+          }
+
+          /*
+           * Create ONE partyClass.
+           *
+           * Not one partyClass
+           * per member.
+           *
+           * The partyClass contains
+           * all queueObj objects.
+           */
+
+          const partyObj = await createPartyMatchmakingObject(
+            partyId,
+            game,
+            queueType,
+            members,
+          );
+
+          matchmakingQueue.addPartyToQueue(partyObj);
+
+          console.log(`Party ${partyId} entered matchmaking queue`, {
+            game,
+            queueType,
+            members: members.length,
+          });
+
+          io.to(`party:${partyId}`).emit("party-ready-for-matchmaking", {
+            partyId,
+            game,
+            queueType,
+          });
+        }
+      } catch (error) {
+        console.error("Party start error:", error);
+
+        io.to(`party:${partyId}`).emit("party-error", {
+          message: "Unable to enter matchmaking.",
+        });
+      }
+    });
+
+    // --------------------------------------------------
+    // EXIT PARTY QUEUE
+    // --------------------------------------------------
+    socket.on("created-party",(partyId)=>{
+        livePartyState.set(partyId, { game: "", queueType: "", members: [socket.userId], readyMembers: [] ,leaderId:socket.userId});
+
+    })
+
+    socket.on("exit-party-queue", async (partyId, game, queueType) => {
+      try {
+        console.log("party");
+
+        const matchmakingQueue = findQueue(game, queueType,grid);
+        console.log(game,queueType);
+        if (!matchmakingQueue) {
+          return;
+        }
+        console.log(partyId);
+        if(partyId!=""){
+        matchmakingQueue.deletePartyFromQueue(`party:${partyId}`);
+
+        /*
+         * Reset readiness.
+         */
+          livePartyState.get(partyId).readyMembers.length=0;
+        const members = livePartyState.get(partyId).members;
+        for (const member of members) {
+            let userId=member;
+            if(!typeof(member)==Number)userId=member.getUserId();
+            io.to(String(userId)).emit("exit-party-queue", socket.userId);
+          }
+        }else{
+          console.log("not party");
+          matchmakingQueue.deletePartyFromQueue(socket.userId);
+          livePartyState.delete(`user:${socket.userId}`);
+          io.to(String(socket.userId)).emit("exit-party-queue", socket.userId);
+        }
+      } catch (error) {
+        console.error("Exit party queue error:", error);
+      }
+    });
+  });
 }
