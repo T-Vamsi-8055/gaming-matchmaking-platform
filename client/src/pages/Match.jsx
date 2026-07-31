@@ -8,30 +8,22 @@ const Match = () => {
     const chatEndRef = useRef(null);
 
     // Retrieve teams from location state
-    const rawTeams = location.state?.gameTeam || location.state?.matchData?.teams;
+    const userRanks = location.state?.userRanks;
 
     // Default testing array (kept intact for demo mode)
     const defaultTeams = [
         [
             { userId: "101", gamerId: "ShadowViper#NA1", gameScore: 820, username: "ShadowViper", rank: "Ascendant" },
-            { userId: "102", gamerId: "CyberKnight#EUW", gameScore: 640, username: "CyberKnight", rank: "Diamond" }
-        ],
-        [
+            { userId: "102", gamerId: "CyberKnight#EUW", gameScore: 640, username: "CyberKnight", rank: "Diamond" },
+        
             { userId: "201", gamerId: "NexusReaper#KR1", gameScore: 790, username: "NexusReaper", rank: "Ascendant" },
             { userId: "202", gamerId: "GhostRider#OCE", gameScore: 610, username: "GhostRider", rank: "Platinum" }
         ]
     ];
 
     // Priority: Real backend data first -> location.state.players -> default test arrays
-    const rawPlayersList = location.state?.players;
-    const teams = rawTeams && rawTeams.length > 0
-        ? (rawTeams.length >= 2 ? rawTeams : [rawTeams[0], []])
-        : defaultTeams;
-
-    // Use backend players list if passed directly, otherwise flatten teams array
-    const players = (rawPlayersList && rawPlayersList.length > 0)
-        ? rawPlayersList
-        : (rawTeams && rawTeams.length > 0 ? rawTeams.flat() : teams.flat());
+    const gamerIds = location.state?.gamerIds;
+    const userNames=location.state?.userNames;
 
     const [inputText, setInputText] = useState("");
     const [isReady, setIsReady] = useState(false);
@@ -39,18 +31,7 @@ const Match = () => {
     const [roomCode] = useState(() => "MATCH-" + Math.floor(100000 + Math.random() * 900000));
     const [readyPlayers, setReadyPlayers] = useState({});
 
-    // Calculate rank title from score if rank/title is not explicitly provided
-    const getRankFromScore = (score) => {
-        if (!score) return "Silver";
-        if (score >= 900) return "Radiant";
-        if (score >= 800) return "Immortal";
-        if (score >= 700) return "Ascendant";
-        if (score >= 600) return "Diamond";
-        if (score >= 500) return "Platinum";
-        if (score >= 400) return "Gold";
-        if (score >= 300) return "Silver";
-        return "Bronze";
-    };
+
 
     const getRankColor = (rank) => {
         switch (rank) {
@@ -145,21 +126,21 @@ const Match = () => {
                                     </h2>
                                 </div>
                                 <span className="text-xs font-mono text-cyan-400/80 bg-cyan-500/10 px-2.5 py-0.5 rounded-full border border-cyan-500/20">
-                                    {players.length} PLAYERS
+                                    { gamerIds.length} PLAYERS
                                 </span>
                             </div>
 
                             {/* 2x2 Grid Layout for 4 Players */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {players.map((member, idx) => {
+                                {gamerIds.map((member, idx) => {
                                     // Handles backend vs testing object keys smoothly
-                                    const usernameDisplay = member.username || member.name || `User #${member.userId || idx + 1}`;
-                                    const rankName = member.rank || member.title || getRankFromScore(member.gameScore);
-                                    const gamerIdDisplay = member.gamerId || member.gameId || `ID#${member.userId || idx}`;
+                                    const usernameDisplay = userNames[idx] || defaultTeams[idx].username;
+                                    const rankName =userRanks[idx];
+                                    const gamerIdDisplay = member || defaultTeams[idx].gamerId;
 
                                     return (
                                         <div 
-                                            key={member.userId || member.id || idx}
+                                            key={member || idx}
                                             className="bg-zinc-950/80 border border-cyan-500/20 hover:border-cyan-400/50 rounded-xl p-4 flex items-center justify-between transition-all duration-200 group"
                                         >
                                             <div className="flex items-center gap-3">

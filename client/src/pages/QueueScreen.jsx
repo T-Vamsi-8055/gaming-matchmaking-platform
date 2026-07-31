@@ -27,9 +27,11 @@ const QueueScreen = () => {
 
     const handleJoinedMatch = (matchPayload) => {
       navigate("/match", {
-        state: { 
-          gameTeam: matchPayload?.teams || matchPayload,
-          matchData: matchPayload 
+        state: {
+          matchId:matchPayload?.matchId,
+          gamerIds: matchPayload?.gamerIds,
+          userRanks: matchPayload?.userRanks,
+          userNames:matchPayload?.userNames
         }
       });
     };

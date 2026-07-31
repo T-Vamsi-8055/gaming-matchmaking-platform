@@ -61,7 +61,7 @@ export function initializeSocket(server) {
   // MATCHMAKING SCANNER
   // --------------------------------------------------
 
-  setInterval(() => {setIntervalFn(grid,io)}, 3000);
+  setInterval(async () => {setIntervalFn(grid,io)}, 3000);
 
   // --------------------------------------------------
   // CONNECTION
