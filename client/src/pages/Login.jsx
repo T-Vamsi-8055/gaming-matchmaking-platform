@@ -162,20 +162,9 @@ export default function USERLOGANDREG() {
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  Password
-                </label>
-
-                {isLogin && (
-                  <a
-                    href="#"
-                    className="text-xs text-cyan-500 hover:underline"
-                  >
-                    Forgot?
-                  </a>
-                )}
-              </div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                Password
+              </label>
 
               <input
                 type="password"
@@ -220,14 +209,13 @@ export default function USERLOGANDREG() {
           </div>
 
           <h1 className="text-4xl font-black tracking-tight leading-none mb-4 uppercase">
-            WILL ADD QUOTE
+            Find your lobby. Match your skill.
             <br />
-            HERE LATER
+             Dominate the game.
           </h1>
 
           <p className="text-zinc-400 text-sm">
-            Filter players by rank, communication style, and toxic-free karma
-            ratings. Welcome to fairer matchmaking.
+            Welcome to fairer matchmaking.
           </p>
         </div>
       </div>
