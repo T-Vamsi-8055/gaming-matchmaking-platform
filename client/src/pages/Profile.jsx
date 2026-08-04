@@ -185,13 +185,8 @@ export default function Profile() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="text-left space-y-1.5">
                     <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Agent Name</label>
-                    <input 
-                      type="text" 
-                      name="name" 
-                      value={profile.name} 
-                      onChange={handleChange} 
-                      className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-lg p-2.5 outline-none transition-all duration-200 text-sm font-mono"
-                    />
+                     <h3 className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-lg p-2.5 outline-none transition-all duration-200 text-sm font-mono"
+                    >{profile.name}</h3>
                   </div>
 
                   <div className="text-left space-y-1.5">

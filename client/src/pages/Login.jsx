@@ -46,6 +46,7 @@ export default function USERLOGANDREG() {
       return;
     }
     localStorage.setItem("jwt-auth-token",data.token);
+    localStorage.setItem("registeredName",data.user?.username);
     if (socket.connected) {
         socket.disconnect();
       }
@@ -220,9 +221,9 @@ export default function USERLOGANDREG() {
           </div>
 
           <h1 className="text-4xl font-black tracking-tight leading-none mb-4 uppercase">
-            WILL ADD QUOTE
+            NEVER THINK ABOUT RESULTS
             <br />
-            HERE LATER
+            JUST DO WHATEVER YOU CAN
           </h1>
 
           <p className="text-zinc-400 text-sm">
