@@ -95,17 +95,19 @@ export default function Profile() {
     if (!response.ok) {
       throw new Error("Failed");
     }
-    return data.data;
+    return {data:data.data,username:data.username};
   };
 
   useEffect(() => {
     async function load() {
       try {
-        const ExistingData = await fetchExistingData();
+        const fetchedData = await fetchExistingData();
+        const ExistingData=fetchedData.data;
+
         if (ExistingData) {
           setAvatarURL(ExistingData.avatar_url);
 
-          let profileData = { name: registeredName };
+          let profileData = { name: fetchedData.username.username };
           profileData.description = ExistingData.bio || '';
           profileData.gamerId = ExistingData.gamer_id || '';
           profileData.profilePic = null;

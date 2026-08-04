@@ -270,14 +270,14 @@ const PartyRoom = () => {
           <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3 shadow-xl">
             <h2 className="text-xs font-bold tracking-wider uppercase text-zinc-400 text-left">Members</h2>
             <div className="space-y-2">
-              {(livePartyState.members.length > 0 ? livePartyState.members : party.members).map((member) => (
-                <div key={member.userId} className="flex items-center justify-between bg-zinc-950/60 border border-white/10 rounded-xl p-3">
+              {( party.members).map((member) => (
+                <div key={member.userId?member.userId:member} className="flex items-center justify-between bg-zinc-950/60 border border-white/10 rounded-xl p-3">
                   <span className="text-sm font-bold text-slate-200">{member.username}</span>
                   <div className="flex items-center gap-2">
-                    {Number(member.userId) === Number(livePartyState.leaderId || party.leader_id) && (
+                    {Number(member.userId?member.userId:member) === Number(livePartyState.leaderId || party.leader_id) && (
                       <Badge size="sm" variant="warning">👑 Host</Badge>
                     )}
-                    <span className="text-xs font-mono text-zinc-500">#{member.userId}</span>
+                    <span className="text-xs font-mono text-zinc-500">#{member.userId?member.userId:member}</span>
                   </div>
                 </div>
               ))}

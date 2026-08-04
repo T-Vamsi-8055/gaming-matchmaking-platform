@@ -34,9 +34,11 @@ async function handleGetUserProfile(req,res){
     const userId=req.user.id;
     try{
     const response=await pool.query("select * from profiles where user_id=$1",[userId]);
+    const response2=await pool.query("select username from users where id=$1",[userId]);
     if(response.rows[0])
     res.status(200).json({
         data:response.rows[0],
+        username:response2.rows[0],
         message:"Data found successfully"
     })
     else res.status(404).json({

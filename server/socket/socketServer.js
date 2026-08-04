@@ -69,7 +69,7 @@ export function initializeSocket(server) {
 
   io.on("connection", (socket) => {
     console.log("Socket connected with userId", socket.userId);
-
+    
     onlineUsersMap.set(String(socket.userId), socket.id);
 
     /*
