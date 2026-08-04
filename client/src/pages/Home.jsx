@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { socket } from '../services/socket.js'
 import { Navbar } from '../components/layout/Navbar'
 import { GameCard } from '../components/gaming/GameCard'
-import { Button, Badge, Spinner } from '../components/common'
+import { Button } from '../components/common'
 import { API_PORT, AVAILABLE_GAMES } from '../utils/constants'
 import { useAuth } from '../hooks/useAuth'
 import { useSocket } from '../hooks/useSocket'
@@ -20,11 +20,8 @@ const Home = () => {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   // Matchmaking Interactive States
-  const [isQueueing, setIsQueueing] = useState(false);
-  const [queueTime, setQueueTime] = useState(0);
   const [game, setGame] = useState('');
   const [queueType, setQueueType] = useState('');
-  const [roomCode, setRoomCode] = useState('');
   
 {/* States for Segment2: Game Discovery Grid */}
   // Mock Data for Games
@@ -123,18 +120,7 @@ const Home = () => {
     });
   });
 
-  // 2. Queue Timer Effect
-  useEffect(() => {
-    let timer;
-    if (isQueueing) {
-      timer = setInterval(() => {
-        setQueueTime((prev) => prev + 1);
-      }, 1000);
-    } else {
-      setQueueTime(0);
-    }
-    return () => clearInterval(timer);
-  }, [isQueueing]);
+
   const handleFindMatch = () => {
     if (!game || !queueType) return;
     socket.emit("join-user-queue", game, queueType);
@@ -206,7 +192,6 @@ localStorage.removeItem("jwt-auth-token");
                     <select 
                       value={game}
                       onChange={(e) => setGame(e.target.value)}
-                      disabled={isQueueing}
                       className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-lg p-2.5 outline-none transition-all duration-200 text-sm cursor-pointer disabled:opacity-50"
                     >
                       <option value="">Select Game...</option>
@@ -224,7 +209,6 @@ localStorage.removeItem("jwt-auth-token");
                     <select 
                       value={queueType}
                       onChange={(e) => setQueueType(e.target.value)}
-                      disabled={isQueueing}
                       className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-lg p-2.5 outline-none transition-all duration-200 text-sm cursor-pointer disabled:opacity-50"
                     >
                       <option value="">Select Queue Type...</option>

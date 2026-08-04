@@ -1,35 +1,29 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { socket, ensureSocketConnected } from "../services/socket.js";
+import { socket } from "../services/socket.js";
+import { Button } from "../components/common";
 
 const Match = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const chatEndRef = useRef(null);
 
-    // Retrieve teams from location state
-    const userRanks = location.state?.userRanks;
 
     // Default testing array (kept intact for demo mode)
     const defaultTeams = [
-        [
-            { userId: "101", gamerId: "ShadowViper#NA1", gameScore: 820, username: "ShadowViper", rank: "Ascendant" },
-            { userId: "102", gamerId: "CyberKnight#EUW", gameScore: 640, username: "CyberKnight", rank: "Diamond" },
-        
-            { userId: "201", gamerId: "NexusReaper#KR1", gameScore: 790, username: "NexusReaper", rank: "Ascendant" },
-            { userId: "202", gamerId: "GhostRider#OCE", gameScore: 610, username: "GhostRider", rank: "Platinum" }
-        ]
+        { userId: "101", gamerId: "ShadowViper#NA1", gameScore: 820, username: "ShadowViper", rank: "Ascendant" },
+        { userId: "102", gamerId: "CyberKnight#EUW", gameScore: 640, username: "CyberKnight", rank: "Diamond" },
+        { userId: "201", gamerId: "NexusReaper#KR1", gameScore: 790, username: "NexusReaper", rank: "Ascendant" },
+        { userId: "202", gamerId: "GhostRider#OCE", gameScore: 610, username: "GhostRider", rank: "Platinum" }
     ];
 
-    // Priority: Real backend data first -> location.state.players -> default test arrays
-    const gamerIds = location.state?.gamerIds;
-    const userNames=location.state?.userNames;
+    // Retrieve teams from location state, fallbacks added to prevent undefined crashes    
+    const gamerIds = location.state?.gamerIds || defaultTeams.map(t => t.gamerId); 
+    const userNames = location.state?.userNames || defaultTeams.map(t => t.username); 
+    const userRanks = location.state?.userRanks || defaultTeams.map(t => t.rank); 
 
-    const [inputText, setInputText] = useState("");
-    const [isReady, setIsReady] = useState(false);
-    const [copied, setCopied] = useState(false);
+    
+
     const [roomCode] = useState(() => "MATCH-" + Math.floor(100000 + Math.random() * 900000));
-    const [readyPlayers, setReadyPlayers] = useState({});
 
 
 
@@ -43,26 +37,6 @@ const Match = () => {
             case "Gold": return "from-yellow-400 to-amber-500 text-amber-200 border-amber-400/40";
             default: return "from-slate-400 to-zinc-500 text-slate-300 border-slate-400/40";
         }
-    };
-
-    // Toggle Ready State
-    const handleToggleReady = () => {
-        const nextState = !isReady;
-        setIsReady(nextState);
-
-        const readyMsgText = nextState 
-            ? "✅ Status update: READY FOR MATCH!" 
-            : "⏳ Status update: NOT READY";
-
-        socket.emit("toggle-ready", { matchId: roomCode });
-        handleQuickShare(readyMsgText);
-    };
-
-    // Copy Lobby Code to Clipboard
-    const handleCopyCode = () => {
-        navigator.clipboard.writeText(roomCode);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
     };
 
     // Exit Match Lobby
@@ -101,12 +75,13 @@ const Match = () => {
 
                     {/* Room Code & Leave Action */}
                     <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                        <button
+                        <Button
                             onClick={handleExitLobby}
-                            className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200"
+                            variant="danger"
+                            size="sm"
                         >
                             Exit Lobby
-                        </button>
+                        </Button>
                     </div>
                 </header>
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { socket, ensureSocketConnected } from '../services/socket.js'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '../components/common'
@@ -40,7 +40,7 @@ const QueueScreen = () => {
     const handleExitPartyQueue = (userId) => {
       if(userId)console.log("Exiting party queue due to user:",userId);
       else alert("Exiting party queue. Reason:Its taking more time than expected,Sorry for the inconvenience.");
-      navigate(`/${location.state?.from}`);
+      navigate(location.state?.from ? `/${location.state.from}` : "/");
     };
 
     const setup = async () => {

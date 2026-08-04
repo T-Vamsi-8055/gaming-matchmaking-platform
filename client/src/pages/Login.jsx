@@ -3,6 +3,7 @@ import "../style/isLogin.css";
 import {useNavigate} from 'react-router-dom';
 import { socket } from "../services/socket";
 import { API_PORT } from "../utils/constants";
+import { Input, Button } from "../components/common";
 
 export default function USERLOGANDREG() {
   const navigate = useNavigate();
@@ -127,78 +128,48 @@ export default function USERLOGANDREG() {
 
           {/* Form */}
           <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="space-y-4 h-60">
-            {!isLogin && (
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                  Username
-                </label>
-
-                <input
+            <div className="space-y-4">
+              {!isLogin && (
+                <Input
+                  label="Username"
                   type="text"
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
                   placeholder="Ninja_X"
                   required={!isLogin}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-zinc-600 transition-colors"
                 />
-              </div>
-            )}
+              )}
 
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                Email Address
-              </label>
-
-              <input
+              <Input
+                label="Email Address"
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="player@gmail.com"
                 required
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-zinc-600 transition-colors"
               />
-            </div>
 
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  Password
-                </label>
-
-                {isLogin && (
-                  <a
-                    href="#"
-                    className="text-xs text-cyan-500 hover:underline"
-                  >
-                    Forgot?
-                  </a>
-                )}
-              </div>
-
-              <input
+              <Input
+                label="Password"
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
                 required
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-zinc-600 transition-colors"
               />
             </div>
-              </div>
-            <button
-              type="submit" disabled={loading}
-              className="w-full mt-2 relative group overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold uppercase tracking-wider text-sm py-3.5 rounded-md hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:shadow-[0_0_25px_rgba(34,211,238,0.4)] active:scale-[0.99]"
+            <Button
+              type="submit"
+              disabled={loading}
+              isLoading={loading}
+              variant="primary"
+              className="w-full mt-4 py-3.5"
             >
-{loading
-    ? "Please wait..."
-    : isLogin
-        ? "Launch Dashboard"
-        : "Verify Email"
-}            </button>
+              {isLogin ? "Launch Dashboard" : "Verify Email"}
+            </Button>
           </form>
         </div>
 
@@ -227,8 +198,7 @@ export default function USERLOGANDREG() {
           </h1>
 
           <p className="text-zinc-400 text-sm">
-            Filter players by rank, communication style, and toxic-free karma
-            ratings. Welcome to fairer matchmaking.
+            Welcome to fairer matchmaking.
           </p>
         </div>
       </div>
