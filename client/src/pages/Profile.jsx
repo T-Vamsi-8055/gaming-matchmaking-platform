@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { API_PORT, AVAILABLE_GAMES } from '../utils/constants';
 import { Navbar } from '../components/layout/Navbar';
+import { Input, Button } from '../components/common';
 
 const registeredName = localStorage.getItem("registeredName") || '';
 
 export default function Profile() {
-  const navigate = useNavigate();
   const [profile, setProfile] = useState({
     name: registeredName,
     description: '',
@@ -183,28 +182,23 @@ export default function Profile() {
 
                 {/* Name and GamerId Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="text-left space-y-1.5">
-                    <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Agent Name</label>
-                    <input 
-                      type="text" 
-                      name="name" 
-                      value={profile.name} 
-                      onChange={handleChange} 
-                      className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-lg p-2.5 outline-none transition-all duration-200 text-sm font-mono"
-                    />
-                  </div>
+                  <Input 
+                    label="Agent Name"
+                    type="text" 
+                    name="name" 
+                    value={profile.name} 
+                    onChange={handleChange} 
+                    className="font-mono"
+                  />
 
-                  <div className="text-left space-y-1.5">
-                    <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">GamerId</label>
-                    <input 
-                      type="text" 
-                      name="gamerId" 
-                      value={profile.gamerId}  
-                      onChange={handleChange} 
-                      placeholder="e.g. faker#KR1"
-                      className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-lg p-2.5 outline-none transition-all duration-200 text-sm"
-                    />
-                  </div>
+                  <Input 
+                    label="GamerId"
+                    type="text" 
+                    name="gamerId" 
+                    value={profile.gamerId}  
+                    onChange={handleChange} 
+                    placeholder="e.g. faker#KR1"
+                  />
                 </div>
 
                 {/* Bio / Description Field */}
@@ -220,17 +214,14 @@ export default function Profile() {
                 </div>
 
                 {/* Region Field */}
-                <div className="text-left space-y-1.5">
-                  <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Region Deployment</label>
-                  <input 
-                    type="text"
-                    name="region" 
-                    value={profile.region} 
-                    onChange={handleChange} 
-                    placeholder="e.g. North America, Europe West"
-                    className="w-full bg-zinc-950/80 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-slate-200 rounded-lg p-2.5 outline-none transition-all duration-200 text-sm placeholder-zinc-600"
-                  />
-                </div>
+                <Input 
+                  label="Region Deployment"
+                  type="text"
+                  name="region" 
+                  value={profile.region} 
+                  onChange={handleChange} 
+                  placeholder="e.g. North America, Europe West"
+                />
 
                 {/* Preferred Games Grid Selection */}
                 <div className="text-left space-y-2">
@@ -299,12 +290,13 @@ export default function Profile() {
                 </div>
 
                 {/* Save Submit Button */}
-                <button
+                <Button
                   type="submit"
-                  className="w-full py-4 bg-cyan-500 text-zinc-950 shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:bg-cyan-400 rounded-xl font-black uppercase tracking-widest transition-all duration-300 transform active:scale-[0.98]"
+                  variant="primary"
+                  className="w-full py-4 rounded-xl"
                 >
                   Save Profile
-                </button>
+                </Button>
 
               </form>
             </div>

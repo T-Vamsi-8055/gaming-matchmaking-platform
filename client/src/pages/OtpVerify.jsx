@@ -1,10 +1,10 @@
-import React from 'react'
-import {useState,useEffect} from 'react'
-import {useLocation,useNavigate} from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {socket} from "../services/socket";
 import { API_PORT } from "../utils/constants";
+import { Button } from "../components/common";
 
-export default function otpVerify(){
+export default function OtpVerify(){
     const [formData,setFormData]=useState(["","","","","",""])
     const [resendBtn, setResendBtn] = useState(false);
     const [timeLeft, setTimeLeft] = useState(120);
@@ -114,67 +114,87 @@ const Data = {
     return null;
 }
   return (
-    <div className="flex flex-col gap-3 justify-center items-center w-screen mx-auto bg-blue-200 text-2xl p-6 ">
-      {errorMsg && <h3 className='text-red-500'>{errorMsg}</h3>}
-      <h1 className="m-5 ">Enter the 6-digit access token sent to {state?.email}:</h1>
-      <form onSubmit={(e)=>submitForm(e)} className='flex flex-col'>
-        <div>{formData.map((digit,i)=>(<input
-    key={i}
-    type="text"
-    inputMode="numeric"
-    maxLength={1}
-    value={digit}
-    placeholder="_"
-    className="rounded-xl bg-blue-300 p-2.5 m-1 w-10"
+    <div className="min-h-screen bg-zinc-950 text-slate-100 flex flex-col items-center justify-center font-sans select-none overflow-hidden p-4 relative w-full">
+      {/* Background Glows */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
 
-    onChange={(e)=>{
+      <div className="relative z-10 w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8 shadow-2xl space-y-6 text-center">
+        {/* Header */}
+        <div className="space-y-2">
+          <h1 className="text-2xl font-black uppercase tracking-wider text-white">
+            Security Verification
+          </h1>
+          <p className="text-sm text-zinc-400">
+            Enter the 6-digit OTP sent to:
+            <br />
+            <span className="text-cyan-400 font-semibold font-mono text-xs">{state?.email}</span>
+          </p>
+        </div>
 
-        const value = e.target.value.replace(/\D/g,"");
+        {errorMsg && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-xs py-2 px-3 rounded-lg font-medium">
+            {errorMsg}
+          </div>
+        )}
 
-        const otp=[...formData];
+        <form onSubmit={submitForm} className="space-y-6 flex flex-col items-center">
+          <div className="flex justify-center gap-2">
+            {formData.map((digit, i) => (
+              <input
+                key={i}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                placeholder="•"
+                className="w-12 h-12 bg-zinc-950 border border-zinc-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-white rounded-xl text-center text-xl font-bold font-mono outline-none transition-all"
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  const otp = [...formData];
+                  otp[i] = value;
+                  setFormData(otp);
+                  if (value && e.target.nextSibling) {
+                    e.target.nextSibling.focus();
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Backspace" && !formData[i]) {
+                    if (e.target.previousSibling) {
+                      e.target.previousSibling.focus();
+                    }
+                  }
+                }}
+              />
+            ))}
+          </div>
 
-        otp[i]=value;
+          <Button type="submit" variant="primary" className="w-full py-3.5">
+            Verify OTP
+          </Button>
+        </form>
 
-        setFormData(otp);
+        <div className="pt-2 border-t border-zinc-800/50 flex flex-col items-center gap-3">
+          <div className="text-xs text-zinc-400">
+            {timeLeft > 0 ? (
+              <span className="font-mono">Resend available in {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
+            ) : (
+              <span>You can now request a new OTP</span>
+            )}
+          </div>
 
-        if(value && e.target.nextSibling){
-
-            e.target.nextSibling.focus();
-
-        }
-
-    }}
-
-    onKeyDown={(e)=>{
-
-        if(e.key==="Backspace" && !formData[i]){
-
-            if(e.target.previousSibling){
-
-                e.target.previousSibling.focus();
-
-            }
-
-        }
-
-    }}
-/>))
-        }</div>
-        <br />
-        <button 
-        type="submit" 
-        className='rounded-xl 
-        bg-blue-400 p-2'>Submit</button>
-      </form>
-      
-        <h2>{timeLeft>0?('Timer: '+Math.floor(timeLeft/60)+":"+((timeLeft%60)<10?("0"+timeLeft%60):(timeLeft%60))):'You can use the resend Btn:'}</h2>
-        
-        
-        {resendBtn ?<button 
-        onClick={handleClickResend}
-        className='rounded-xl 
-        bg-blue-400 p-2 '>Resend</button>:<h3>Wait for the resend button</h3>}
+          {resendBtn ? (
+            <Button onClick={handleClickResend} variant="secondary" className="w-full py-2 text-xs">
+              Resend OTP
+            </Button>
+          ) : (
+            <span className="text-xs text-zinc-600 font-semibold uppercase tracking-wider">
+              OTP Resent
+            </span>
+          )}
+        </div>
+      </div>
     </div>
-  )
+  );
 }
 

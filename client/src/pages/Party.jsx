@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../services/socket";
 import { API_PORT } from "../utils/constants";
@@ -24,9 +24,7 @@ const Party = () => {
         }
 
         setLoading(true);
-        let finalCode = "";
-        if (e.target.value) { finalCode = e.target.value; }
-        else finalCode = inviteCode;
+        const finalCode = e.target.value || inviteCode;
         try {
             const token = localStorage.getItem("jwt-auth-token");
 
@@ -150,17 +148,6 @@ const Party = () => {
         fetchMyParties();
     }, []);
 
-    useEffect(() => {
-        if (!searchItem.trim()) {
-            setResults([]);
-            return;
-        }
-        const timer = setTimeout(() => {
-            searchParties(searchItem);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [searchItem]);
-
     const searchParties = async (item) => {
         try {
             const token = localStorage.getItem("jwt-auth-token");
@@ -178,6 +165,17 @@ const Party = () => {
             console.log(err);
         }
     };
+
+    useEffect(() => {
+        if (!searchItem.trim()) {
+            setTimeout(() => setResults([]), 0);
+            return;
+        }
+        const timer = setTimeout(() => {
+            searchParties(searchItem);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchItem]);
 
     return (
         <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-400 relative overflow-hidden">
