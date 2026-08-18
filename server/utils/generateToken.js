@@ -12,3 +12,15 @@ export function generateToken(user) {
         }
     );
 }
+export function generateRefreshToken(user) {
+    return jwt.sign(
+        {
+            id: user.id,
+            email: user.email,
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: "15m",
+        }
+    );
+}

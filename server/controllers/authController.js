@@ -4,6 +4,7 @@ import { jwtVerify } from "../config/jwt.js";
 
 import { generateOTP } from "../utils/generateOTP.js";
 import { generateToken } from "../utils/generateToken.js";
+import { generateRefreshToken } from "../utils/generateToken.js";
 import { sendOTPEmail } from "../utils/sendOTPEmail.js";
 import dotenv from "dotenv"
 
@@ -37,13 +38,20 @@ async function handleAuthLogin(req, res) {
         }
 
         const token = generateToken(user);
+        const refreshToken = generateRefreshToken(user);
 
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
+            maxAge: 15 * 60 * 1000,
         });
+        res.cookie("refresh-token",refreshToken,{
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
 
         return res.status(200).json({
             message: "Login successful",
@@ -244,13 +252,20 @@ async function handleOtpVerify(req,res){
 
         await client.query("COMMIT");
         const token = generateToken({id:userId.rows[0].id,email:user.email});
+        const refreshToken = generateRefreshToken(user);
 
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
+            maxAge: 15 * 60 * 1000,
         });
+        res.cookie("refresh-token",refreshToken,{
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
 
         return res.status(200).json({
             message: "Account created and Login successful",
