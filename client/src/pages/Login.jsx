@@ -4,6 +4,7 @@ import {useNavigate} from 'react-router-dom';
 import { socket } from "../services/socket";
 import { API_PORT } from "../utils/constants";
 import { Input, Button } from "../components/common";
+import { apiFetch } from '../utils/apiFetch';
 
 export default function USERLOGANDREG() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export default function USERLOGANDREG() {
     setLoading(true);
 
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       `http://localhost:${API_PORT}/api/auth${endpoint}`,
       {
         method: "POST",

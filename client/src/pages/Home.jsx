@@ -7,6 +7,7 @@ import { Button } from '../components/common'
 import { API_PORT, AVAILABLE_GAMES } from '../utils/constants'
 import { useAuth } from '../hooks/useAuth'
 import { useSocket } from '../hooks/useSocket'
+import { apiFetch } from '../utils/apiFetch';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -51,8 +52,9 @@ const Home = () => {
 
     const fetchProfileAndAnalytics = async () => {
       const token = localStorage.getItem("jwt-auth-token");
+
       try {
-        const profileResponse = await fetch(`http://localhost:${API_PORT}/api/profile`, {
+        const profileResponse = await apiFetch(`http://localhost:${API_PORT}/api/profile`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -72,7 +74,7 @@ const Home = () => {
                 const matchingGame = AVAILABLE_GAMES.find((item) => item.label === game);
                 const slug = matchingGame?.slug || game.toLowerCase().replace(/\s+/g, "-");
                 try {
-                  const analyticsResponse = await fetch(`http://localhost:${API_PORT}/api/game-data/${slug}`, {
+                  const analyticsResponse = await apiFetch(`http://localhost:${API_PORT}/api/game-data/${slug}`, {
                     method: "GET",
                     credentials: "include",
                     headers: {

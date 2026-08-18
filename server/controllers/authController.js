@@ -359,6 +359,10 @@ async function handleResendOTP(req, res) {
 
 }
 async function handleRefreshToken(req,res){
+    if(req.cookies.token)
+        return res.status(201).json({
+                message: "token is not expired yet",
+            });
     const refreshToken = req.cookies.refreshToken;
 
         if (!refreshToken) {
