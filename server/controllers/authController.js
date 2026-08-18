@@ -46,7 +46,7 @@ async function handleAuthLogin(req, res) {
             sameSite: "lax",
             maxAge: 15 * 60 * 1000,
         });
-        res.cookie("refresh-token",refreshToken,{
+        res.cookie("refreshToken",refreshToken,{
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
@@ -252,7 +252,7 @@ async function handleOtpVerify(req,res){
 
         await client.query("COMMIT");
         const token = generateToken({id:userId.rows[0].id,email:user.email});
-        const refreshToken = generateRefreshToken(user);
+        const refreshToken = generateRefreshToken({id:userId.rows[0].id,email:user.email});
 
         res.cookie("token", token, {
             httpOnly: true,
@@ -260,7 +260,7 @@ async function handleOtpVerify(req,res){
             sameSite: "lax",
             maxAge: 15 * 60 * 1000,
         });
-        res.cookie("refresh-token",refreshToken,{
+        res.cookie("refreshToken",refreshToken,{
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
@@ -358,11 +358,51 @@ async function handleResendOTP(req, res) {
     }
 
 }
+async function handleRefreshToken(req,res){
+    const refreshToken = req.cookies.refreshToken;
 
+        if (!refreshToken) {
+
+            return res.status(401).json({
+                message: "Refresh token expired",
+            });
+
+        }
+    const result = await pool.query(
+            `
+            SELECT id,
+                   username,
+                   email
+            FROM users
+            WHERE id=$1
+            `,
+            [jwtVerify(refreshToken).id]
+        );
+        if(result.rows.length==0) {
+
+            return res.status(401).json({
+                message: "User not found",
+            });
+
+        }
+    const token = generateToken({id:result.rows[0].id,email:result.email});
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 15 * 60 * 1000,
+        });
+    return res.status(200).json({
+            message: "Token updated successfully",
+            token
+        });
+}
 export {
     handleAuthLogin,
     handleAuthRegister,
     handleOtpVerify,
     handleAuthMe,
-    handleResendOTP
+    handleResendOTP,
+    handleRefreshToken
 };
