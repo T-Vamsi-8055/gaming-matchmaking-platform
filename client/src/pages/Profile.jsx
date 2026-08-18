@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { API_PORT, AVAILABLE_GAMES } from '../utils/constants';
 import { Navbar } from '../components/layout/Navbar';
 import { Input, Button } from '../components/common';
+import { apiFetch } from '../utils/apiFetch';
 
 const registeredName = localStorage.getItem("registeredName") || '';
 
@@ -32,7 +33,7 @@ export default function Profile() {
       formData.append("socialLinks", JSON.stringify(profile.socialLinks));
       
       const token = localStorage.getItem("jwt-auth-token");
-      const response = await fetch(`http://localhost:${API_PORT}/api/profile`, {
+      const response = await apiFetch(`http://localhost:${API_PORT}/api/profile`, {
         method: "PUT",
         credentials: "include",
         headers: {
@@ -84,7 +85,7 @@ export default function Profile() {
 
   const fetchExistingData = async () => {
     const token = localStorage.getItem("jwt-auth-token");
-    const response = await fetch(`http://localhost:${API_PORT}/api/profile`, {
+    const response = await apiFetch(`http://localhost:${API_PORT}/api/profile`, {
       method: "GET",
       credentials: "include",
       headers: {

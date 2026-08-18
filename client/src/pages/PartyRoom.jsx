@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { API_PORT, AVAILABLE_GAMES } from "../utils/constants";
 import { Button, Input, Badge, Spinner } from "../components/common";
 import { Navbar } from "../components/layout/Navbar";
+import { apiFetch } from '../utils/apiFetch';
 
 const PartyRoom = () => {
   const { id } = useParams();
@@ -29,14 +30,14 @@ const PartyRoom = () => {
         const token = localStorage.getItem("jwt-auth-token");
 
         const [partyResponse, meResponse] = await Promise.all([
-          fetch(`http://localhost:${API_PORT}/api/party/${id}`, {
+          apiFetch(`http://localhost:${API_PORT}/api/party/${id}`, {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }),
 
-          fetch(`http://localhost:${API_PORT}/api/auth/me`, {
+          apiFetch(`http://localhost:${API_PORT}/api/auth/me`, {
             method: "GET",
             credentials: "include",
           }),
@@ -210,7 +211,7 @@ const PartyRoom = () => {
 
     try {
       const token = localStorage.getItem("jwt-auth-token");
-      const response = await fetch(
+      const response = await apiFetch(
         `http://localhost:${API_PORT}/api/leave-party/${id}`,
         {
           method: "POST",
