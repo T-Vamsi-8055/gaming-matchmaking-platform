@@ -14,7 +14,7 @@ export const useAuth = (redirectTo = '/auth') => {
           credentials: "include",
         });
 
-        if (!response.ok) {
+        if (!response || !response.ok) {
           if (redirectTo) navigate(redirectTo);
           return;
         }

@@ -7,6 +7,7 @@ import { generateToken } from "../utils/generateToken.js";
 import { generateRefreshToken } from "../utils/generateToken.js";
 import { sendOTPEmail } from "../utils/sendOTPEmail.js";
 import dotenv from "dotenv"
+import jwt from "jsonwebtoken";
 
 async function handleAuthLogin(req, res) {
     const { email, password } = req.body;
@@ -359,6 +360,23 @@ async function handleResendOTP(req, res) {
 
 }
 async function handleRefreshToken(req,res){
+    const refreshToken = req.cookies.refreshToken;
+
+console.log("========== REFRESH DEBUG ==========");
+console.log("refreshToken exists:", !!refreshToken);
+
+if (refreshToken) {
+    const decoded = jwt.decode(refreshToken);
+
+    console.log("iat:", new Date(decoded.iat * 1000).toISOString());
+    console.log("exp:", new Date(decoded.exp * 1000).toISOString());
+    console.log("NOW:", new Date().toISOString());
+}
+
+console.log("====================================");
+
+const decoded = jwtVerify(refreshToken);
+    try{
     if(req.cookies.token)
         return res.status(201).json({
                 message: "token is not expired yet",
@@ -389,7 +407,7 @@ async function handleRefreshToken(req,res){
             });
 
         }
-    const token = generateToken({id:result.rows[0].id,email:result.email});
+    const token = generateToken({id:result.rows[0].id,email:result.rows[0].email});
 
         res.cookie("token", token, {
             httpOnly: true,
@@ -401,9 +419,61 @@ async function handleRefreshToken(req,res){
             message: "Token updated successfully",
             token
         });
+    }catch(Err){
+        console.log(Err);
+        return res.status(401).json({
+        message: "Invalid or expired refresh token"
+    });
+    }
 }
 async function handleDeleteAccount(req,res){
-    
+    try {
+
+        const token = req.cookies.token;
+        
+        if (!token) {
+
+            return res.status(401).json({
+                message: "Not authenticated",
+            });
+
+        }
+
+        
+
+        const result = await pool.query(
+            `
+            SELECT id,
+                   username,
+                   email
+            FROM users
+            WHERE id=$1
+            `,
+            [jwtVerify(token).id]
+        );
+
+        if (result.rowCount === 0) {
+
+            return res.status(404).json({
+                message: "User not found",
+            });
+
+        }
+        await pool.query("BEGIN");
+        const deleteResult1=await pool.query("Delete from users where id=$1",[result.rows[0].id]);
+        if(deleteResult1.rowCount==0)await pool.query("ROLLBACK");
+        const deleteResult2=await pool.query("Delete from profiles where user_id=$1",[result.rows[0].id]);
+        if(deleteResult2.rowCount==0)await pool.query("ROLLBACK");
+        const deleteResult3=await pool.query("Delete from party_members where user_id=$1",[result.rows[0].id]);
+        if(deleteResult3.rowCount==0)await pool.query("ROLLBACK");
+        pool.query("COMMIT");
+    } catch (err) {
+
+        return res.status(401).json({
+            message: "Invalid token",
+        });
+
+    }
 }
 export {
     handleAuthLogin,

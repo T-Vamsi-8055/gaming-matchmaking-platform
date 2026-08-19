@@ -3,6 +3,8 @@ import { API_PORT, AVAILABLE_GAMES } from '../utils/constants';
 import { Navbar } from '../components/layout/Navbar';
 import { Input, Button } from '../components/common';
 import { apiFetch } from '../utils/apiFetch';
+import { handleDeleteAccount } from '../../../server/controllers/authController';
+import { socket } from '../services/socket';
 
 const registeredName = localStorage.getItem("registeredName") || '';
 
@@ -98,7 +100,23 @@ export default function Profile() {
     }
     return {data:data.data,username:data.username};
   };
-
+  const handleDeleteAccount=async ()=>{
+        const response = window.confirm("Are you sure to Log out?");
+        if (response) {
+          if (socket && socket.connected) {
+            socket.disconnect();
+          }
+          localStorage.removeItem("jwt-auth-token");
+          const token = localStorage.getItem("jwt-auth-token");
+          const response = await apiFetch(`http://localhost:${API_PORT}/api/auth/delete-account`, {
+            method: "POST",
+            credentials: "include",
+            
+          });
+          navigate("/auth");
+        }
+      
+  }
   useEffect(() => {
     async function load() {
       try {
@@ -288,7 +306,14 @@ export default function Profile() {
                     </div>
                   </div>
                 </div>
-
+                  {/* Delete User */}
+                  <Button
+                  onClick={handleDeleteAccount}
+                  variant="primary"
+                  className="w-full py-4 rounded-xl bg-red-400"
+                >
+                  Delete Account
+                </Button>
                 {/* Save Submit Button */}
                 <Button
                   type="submit"

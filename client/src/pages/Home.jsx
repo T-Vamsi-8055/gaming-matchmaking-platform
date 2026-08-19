@@ -145,9 +145,16 @@ const Home = () => {
       if(response){
       console.log(socket.connected)
       socket.disconnect();
-            console.log(socket.connected)
-localStorage.removeItem("jwt-auth-token");
-      navigate("/auth");}
+      console.log(socket.connected);
+      const token = localStorage.getItem("jwt-auth-token");
+      localStorage.removeItem("jwt-auth-token");
+
+          const response = await apiFetch(`http://localhost:${API_PORT}/api/auth/log-out`, {
+            method: "POST",
+            credentials: "include",
+            
+          });
+            navigate("/auth");}
   }
   
   // Prevent UI flashing or undefined crashes while checking user details

@@ -8,7 +8,7 @@ export function generateToken(user) {
         },
         process.env.JWT_SECRET,
         {
-            expiresIn: "7d",
+            expiresIn: "15m",
         }
     );
 }
@@ -20,7 +20,7 @@ export function generateRefreshToken(user) {
         },
         process.env.JWT_SECRET,
         {
-            expiresIn: "15m",
+            expiresIn: "7d",
         }
     );
 }

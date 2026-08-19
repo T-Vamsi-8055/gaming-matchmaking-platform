@@ -11,9 +11,16 @@ export const Navbar = ({ onLogout }) => {
       if (socket && socket.connected) {
         socket.disconnect();
       }
+      const token = localStorage.getItem("jwt-auth-token");
       localStorage.removeItem("jwt-auth-token");
-      navigate("/auth");
-    }
+      
+          const response = await apiFetch(`http://localhost:${API_PORT}/api/auth/log-out`, {
+            method: "POST",
+            credentials: "include",
+            
+          });
+            navigate("/auth");
+      }
   };
 
   const handleLogoutClick = onLogout || handleDefaultLogout;
