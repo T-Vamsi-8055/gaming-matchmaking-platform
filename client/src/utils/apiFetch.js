@@ -6,7 +6,7 @@ export async function apiFetch(prompt,data){
             return result;
         }
         else{
-            const refresh=await fetch(`https://localhost:${API_PORT}/api/auth/refreshToken`,{
+            const refresh=await fetch(`http://localhost:${API_PORT}/api/auth/refreshToken`,{
                 method: "POST",
                 credentials: "include"
             })

@@ -402,11 +402,15 @@ async function handleRefreshToken(req,res){
             token
         });
 }
+async function handleDeleteAccount(req,res){
+    
+}
 export {
     handleAuthLogin,
     handleAuthRegister,
     handleOtpVerify,
     handleAuthMe,
     handleResendOTP,
-    handleRefreshToken
+    handleRefreshToken,
+    handleDeleteAccount
 };
