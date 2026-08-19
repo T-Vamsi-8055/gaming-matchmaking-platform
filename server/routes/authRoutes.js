@@ -1,6 +1,6 @@
 import express from "express";
 const route=express.Router();
-import {handleAuthLogin,  handleAuthRegister, handleAuthMe ,handleResendOTP,handleOtpVerify,handleRefreshToken,handleDeleteAccount} from "../controllers/authController.js"
+import {handleAuthLogin,  handleAuthRegister, handleAuthMe ,handleResendOTP,handleOtpVerify,handleRefreshToken,handleDeleteAccount,handleLogout} from "../controllers/authController.js"
 
 route.post("/login",
     handleAuthLogin
@@ -27,4 +27,8 @@ route.post(
     "/delete-account",
     handleDeleteAccount
 );
+route.post(
+    "/log-out",
+    handleLogout
+)
 export {route};

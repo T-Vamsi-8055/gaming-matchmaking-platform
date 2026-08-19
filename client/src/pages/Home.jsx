@@ -140,7 +140,7 @@ const Home = () => {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-  const handleLogOut =()=>{
+  const handleLogOut =async ()=>{
     const response=confirm("Are you sure to Log out?")
       if(response){
       console.log(socket.connected)

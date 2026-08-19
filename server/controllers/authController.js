@@ -475,6 +475,23 @@ async function handleDeleteAccount(req,res){
 
     }
 }
+async function handleLogout(req, res) {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax"
+    });
+
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax"
+    });
+
+    return res.status(200).json({
+        message: "Logged out successfully"
+    });
+}
 export {
     handleAuthLogin,
     handleAuthRegister,
@@ -482,5 +499,6 @@ export {
     handleAuthMe,
     handleResendOTP,
     handleRefreshToken,
-    handleDeleteAccount
+    handleDeleteAccount,
+    handleLogout
 };

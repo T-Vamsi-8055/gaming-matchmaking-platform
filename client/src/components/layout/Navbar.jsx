@@ -5,7 +5,7 @@ import { socket } from '../../services/socket';
 export const Navbar = ({ onLogout }) => {
   const navigate = useNavigate();
 
-  const handleDefaultLogout = () => {
+  const handleDefaultLogout = async () => {
     const response = window.confirm("Are you sure to Log out?");
     if (response) {
       if (socket && socket.connected) {
