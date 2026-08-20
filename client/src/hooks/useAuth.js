@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_PORT } from '../utils/constants';
-
+import { apiFetch } from '../utils/apiFetch';
 export const useAuth = (redirectTo = '/auth') => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -10,11 +10,11 @@ export const useAuth = (redirectTo = '/auth') => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch(`http://localhost:${API_PORT}/api/auth/me`, {
+        const response = await apiFetch(`http://localhost:${API_PORT}/api/auth/me`, {
           credentials: "include",
         });
 
-        if (!response.ok) {
+        if (!response || !response.ok) {
           if (redirectTo) navigate(redirectTo);
           return;
         }

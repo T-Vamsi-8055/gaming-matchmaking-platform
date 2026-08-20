@@ -1,18 +1,30 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { socket } from '../../services/socket';
+import { API_PORT } from '../../utils/constants';
 
 export const Navbar = ({ onLogout }) => {
   const navigate = useNavigate();
 
-  const handleDefaultLogout = () => {
-    const response = window.confirm("Are you sure to Log out?");
-    if (response) {
-      if (socket && socket.connected) {
+  const handleDefaultLogout = async () => {
+    const confirmed = window.confirm("Are you sure to Log out?");
+
+    if (!confirmed) return;
+
+    if (socket?.connected) {
         socket.disconnect();
-      }
-      localStorage.removeItem("jwt-auth-token");
-      navigate("/auth");
+    }
+
+    try {
+        await fetch(`http://localhost:${API_PORT}/api/auth/log-out`, {
+            method: "POST",
+            credentials: "include"
+        });
+    } catch (err) {
+        console.error("Logout failed:", err);
+    } finally {
+        localStorage.removeItem("jwt-auth-token");
+        navigate("/auth");
     }
   };
 

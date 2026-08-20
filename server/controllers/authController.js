@@ -4,8 +4,10 @@ import { jwtVerify } from "../config/jwt.js";
 
 import { generateOTP } from "../utils/generateOTP.js";
 import { generateToken } from "../utils/generateToken.js";
+import { generateRefreshToken } from "../utils/generateToken.js";
 import { sendOTPEmail } from "../utils/sendOTPEmail.js";
 import dotenv from "dotenv"
+import jwt from "jsonwebtoken";
 
 async function handleAuthLogin(req, res) {
     const { email, password } = req.body;
@@ -37,13 +39,20 @@ async function handleAuthLogin(req, res) {
         }
 
         const token = generateToken(user);
+        const refreshToken = generateRefreshToken(user);
 
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
+            maxAge: 15 * 60 * 1000,
         });
+        res.cookie("refreshToken",refreshToken,{
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
 
         return res.status(200).json({
             message: "Login successful",
@@ -139,7 +148,7 @@ async function handleAuthMe(req, res) {
     try {
 
         const token = req.cookies.token;
-
+        
         if (!token) {
 
             return res.status(401).json({
@@ -244,13 +253,20 @@ async function handleOtpVerify(req,res){
 
         await client.query("COMMIT");
         const token = generateToken({id:userId.rows[0].id,email:user.email});
+        const refreshToken = generateRefreshToken({id:userId.rows[0].id,email:user.email});
 
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
+            maxAge: 15 * 60 * 1000,
         });
+        res.cookie("refreshToken",refreshToken,{
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
 
         return res.status(200).json({
             message: "Account created and Login successful",
@@ -343,11 +359,156 @@ async function handleResendOTP(req, res) {
     }
 
 }
+async function handleRefreshToken(req,res){
+    const refreshToken = req.cookies.refreshToken;
 
+console.log("========== REFRESH DEBUG ==========");
+console.log("refreshToken exists:", !!refreshToken);
+
+if (refreshToken) {
+    const decoded = jwt.decode(refreshToken);
+
+    console.log("iat:", new Date(decoded.iat * 1000).toISOString());
+    console.log("exp:", new Date(decoded.exp * 1000).toISOString());
+    console.log("NOW:", new Date().toISOString());
+}
+
+console.log("====================================");
+
+const decoded = jwtVerify(refreshToken);
+    try{
+    if(req.cookies.token)
+        return res.status(201).json({
+                message: "token is not expired yet",
+            });
+    const refreshToken = req.cookies.refreshToken;
+
+        if (!refreshToken) {
+
+            return res.status(401).json({
+                message: "Refresh token expired",
+            });
+
+        }
+    const result = await pool.query(
+            `
+            SELECT id,
+                   username,
+                   email
+            FROM users
+            WHERE id=$1
+            `,
+            [jwtVerify(refreshToken).id]
+        );
+        if(result.rows.length==0) {
+
+            return res.status(401).json({
+                message: "User not found",
+            });
+
+        }
+    const token = generateToken({id:result.rows[0].id,email:result.rows[0].email});
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 15 * 60 * 1000,
+        });
+    return res.status(200).json({
+            message: "Token updated successfully",
+            token
+        });
+    }catch(Err){
+        console.log(Err);
+        return res.status(401).json({
+        message: "Invalid or expired refresh token"
+    });
+    }
+}
+async function handleDeleteAccount(req,res){
+    try {
+
+        const token = req.cookies.token;
+        
+        if (!token) {
+
+            return res.status(401).json({
+                message: "Not authenticated",
+            });
+
+        }
+
+        
+
+        const result = await pool.query(
+            `
+            SELECT id,
+                   username,
+                   email
+            FROM users
+            WHERE id=$1
+            `,
+            [jwtVerify(token).id]
+        );
+
+        if (result.rowCount === 0) {
+
+            return res.status(404).json({
+                message: "User not found",
+            });
+
+        }
+        const deleteResult1=await pool.query("Delete from users where id=$1",[result.rows[0].id]);
+        const deleteResult2=await pool.query("Delete from profiles where user_id=$1",[result.rows[0].id]);
+        const deleteResult3=await pool.query("Delete from party_members where user_id=$1",[result.rows[0].id]);
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax"
+        });
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax"
+        });
+
+        return res.status(200).json({
+            message: "Deleted account and Logged out successfully"
+        });
+    } catch (err) {
+
+        return res.status(401).json({
+            message: "Invalid token",
+        });
+
+    }
+}
+async function handleLogout(req, res) {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax"
+    });
+
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax"
+    });
+
+    return res.status(200).json({
+        message: "Logged out successfully"
+    });
+}
 export {
     handleAuthLogin,
     handleAuthRegister,
     handleOtpVerify,
     handleAuthMe,
-    handleResendOTP
+    handleResendOTP,
+    handleRefreshToken,
+    handleDeleteAccount,
+    handleLogout
 };

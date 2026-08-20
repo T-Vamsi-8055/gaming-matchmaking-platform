@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { API_PORT, AVAILABLE_GAMES } from '../utils/constants';
 import { Navbar } from '../components/layout/Navbar';
 import { Input, Button } from '../components/common';
-
+import { apiFetch } from '../utils/apiFetch';
+import { socket } from '../services/socket';
+import { useNavigate } from 'react-router-dom';
 const registeredName = localStorage.getItem("registeredName") || '';
 
 export default function Profile() {
+const navigate=useNavigate();
+
   const [profile, setProfile] = useState({
     name: registeredName,
     description: '',
@@ -32,7 +36,7 @@ export default function Profile() {
       formData.append("socialLinks", JSON.stringify(profile.socialLinks));
       
       const token = localStorage.getItem("jwt-auth-token");
-      const response = await fetch(`http://localhost:${API_PORT}/api/profile`, {
+      const response = await apiFetch(`http://localhost:${API_PORT}/api/profile`, {
         method: "PUT",
         credentials: "include",
         headers: {
@@ -84,7 +88,7 @@ export default function Profile() {
 
   const fetchExistingData = async () => {
     const token = localStorage.getItem("jwt-auth-token");
-    const response = await fetch(`http://localhost:${API_PORT}/api/profile`, {
+    const response = await apiFetch(`http://localhost:${API_PORT}/api/profile`, {
       method: "GET",
       credentials: "include",
       headers: {
@@ -97,7 +101,27 @@ export default function Profile() {
     }
     return {data:data.data,username:data.username};
   };
-
+  const handleDeleteAccount=async ()=>{
+        const response = window.confirm("Are you sure to delete your account?(This activity cannot be undone)");
+        if (response) {
+          try{
+          if (socket && socket.connected) {
+            socket.disconnect();
+          }
+          localStorage.removeItem("jwt-auth-token");
+          const token = localStorage.getItem("jwt-auth-token");
+          const response = await apiFetch(`http://localhost:${API_PORT}/api/auth/delete-account`, {
+            method: "POST",
+            credentials: "include",
+            
+          });
+          navigate("/auth");
+        }catch(err){
+          console.log("Error: ",err);
+        }
+        }
+      
+  }
   useEffect(() => {
     async function load() {
       try {
@@ -287,7 +311,14 @@ export default function Profile() {
                     </div>
                   </div>
                 </div>
-
+                  {/* Delete User */}
+                  <Button
+                  onClick={handleDeleteAccount}
+                  variant="primary"
+                  className="w-full py-4 rounded-xl bg-red-400 hover:bg-red-700"
+                >
+                  Delete Account
+                </Button>
                 {/* Save Submit Button */}
                 <Button
                   type="submit"

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import {socket} from "../services/socket";
 import { API_PORT } from "../utils/constants";
 import { Button } from "../components/common";
+import { apiFetch } from '../utils/apiFetch';
 
 export default function OtpVerify(){
     const [formData,setFormData]=useState(["","","","","",""])
@@ -31,7 +32,7 @@ useEffect(() => {
 
     try {
 
-        const response = await fetch(
+        const response = await apiFetch(
             `http://localhost:${API_PORT}/api/auth/resend-otp`,
             {
                 method: "POST",
@@ -76,7 +77,7 @@ const Data = {
     email: state.email,
     otp: formData.join("")
 };
-      const response = await fetch(`http://localhost:${API_PORT}/api/auth/verify-otp`, {
+      const response = await apiFetch(`http://localhost:${API_PORT}/api/auth/verify-otp`, {
         method: "POST",
         credentials: "include",
         headers: {

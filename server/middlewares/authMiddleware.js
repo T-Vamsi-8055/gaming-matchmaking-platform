@@ -1,20 +1,27 @@
 import { jwtVerify } from "../config/jwt.js";
 
 export function verifyJWT(req, res, next) {
+    const cookieToken = req.cookies.token;
+
     const authHeader = req.headers.authorization;
+    const headerToken = authHeader?.startsWith("Bearer ")
+        ? authHeader.split(" ")[1]
+        : null;
 
-    if (!authHeader)
-        return res.sendStatus(401);
+    const token = cookieToken || headerToken;
 
-    const token = authHeader.split(" ")[1];
+    if (!token) {
+        return res.status(401).json({
+            message: "Authentication required"
+        });
+    }
 
     try {
-        
-
         req.user = jwtVerify(token);
-
         next();
-    } catch {
-        return res.sendStatus(403);
+    } catch (err) {
+        return res.status(401).json({
+            message: "Invalid or expired token"
+        });
     }
 }

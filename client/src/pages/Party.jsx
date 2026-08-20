@@ -4,6 +4,7 @@ import { socket } from "../services/socket";
 import { API_PORT } from "../utils/constants";
 import { Button, Input, Badge } from "../components/common";
 import { Navbar } from "../components/layout/Navbar";
+import { apiFetch } from '../utils/apiFetch';
 
 const Party = () => {
     const [inviteCode, setInviteCode] = useState("");
@@ -28,7 +29,7 @@ const Party = () => {
         try {
             const token = localStorage.getItem("jwt-auth-token");
 
-            const response = await fetch(
+            const response = await apiFetch(
                 `http://localhost:${API_PORT}/api/join-party`,
                 {
                     method: "POST",
@@ -76,7 +77,7 @@ const Party = () => {
         try {
             const token = localStorage.getItem("jwt-auth-token");
 
-            const response = await fetch(
+            const response = await apiFetch(
                 `http://localhost:${API_PORT}/api/create-party`,
                 {
                     method: "POST",
@@ -118,7 +119,7 @@ const Party = () => {
             try {
                 const token = localStorage.getItem("jwt-auth-token");
 
-                const response = await fetch(
+                const response = await apiFetch(
                     `http://localhost:${API_PORT}/api/my-parties`,
                     {
                         method: "GET",
@@ -152,7 +153,7 @@ const Party = () => {
         try {
             const token = localStorage.getItem("jwt-auth-token");
 
-            const response = await fetch(`http://localhost:${API_PORT}/api/search-parties?searchItem=${item}`, {
+            const response = await apiFetch(`http://localhost:${API_PORT}/api/search-parties?searchItem=${item}`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
