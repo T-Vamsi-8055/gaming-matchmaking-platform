@@ -3,12 +3,13 @@ import { API_PORT, AVAILABLE_GAMES } from '../utils/constants';
 import { Navbar } from '../components/layout/Navbar';
 import { Input, Button } from '../components/common';
 import { apiFetch } from '../utils/apiFetch';
-import { handleDeleteAccount } from '../../../server/controllers/authController';
 import { socket } from '../services/socket';
-
+import { useNavigate } from 'react-router-dom';
 const registeredName = localStorage.getItem("registeredName") || '';
 
 export default function Profile() {
+const navigate=useNavigate();
+
   const [profile, setProfile] = useState({
     name: registeredName,
     description: '',
@@ -101,8 +102,9 @@ export default function Profile() {
     return {data:data.data,username:data.username};
   };
   const handleDeleteAccount=async ()=>{
-        const response = window.confirm("Are you sure to Log out?");
+        const response = window.confirm("Are you sure to delete your account?(This activity cannot be undone)");
         if (response) {
+          try{
           if (socket && socket.connected) {
             socket.disconnect();
           }
@@ -114,6 +116,9 @@ export default function Profile() {
             
           });
           navigate("/auth");
+        }catch(err){
+          console.log("Error: ",err);
+        }
         }
       
   }
@@ -310,7 +315,7 @@ export default function Profile() {
                   <Button
                   onClick={handleDeleteAccount}
                   variant="primary"
-                  className="w-full py-4 rounded-xl bg-red-400"
+                  className="w-full py-4 rounded-xl bg-red-400 hover:bg-red-700"
                 >
                   Delete Account
                 </Button>

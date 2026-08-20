@@ -459,14 +459,24 @@ async function handleDeleteAccount(req,res){
             });
 
         }
-        await pool.query("BEGIN");
         const deleteResult1=await pool.query("Delete from users where id=$1",[result.rows[0].id]);
-        if(deleteResult1.rowCount==0)await pool.query("ROLLBACK");
         const deleteResult2=await pool.query("Delete from profiles where user_id=$1",[result.rows[0].id]);
-        if(deleteResult2.rowCount==0)await pool.query("ROLLBACK");
         const deleteResult3=await pool.query("Delete from party_members where user_id=$1",[result.rows[0].id]);
-        if(deleteResult3.rowCount==0)await pool.query("ROLLBACK");
-        pool.query("COMMIT");
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax"
+        });
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax"
+        });
+
+        return res.status(200).json({
+            message: "Deleted account and Logged out successfully"
+        });
     } catch (err) {
 
         return res.status(401).json({

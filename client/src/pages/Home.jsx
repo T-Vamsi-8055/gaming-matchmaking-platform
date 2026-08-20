@@ -27,11 +27,11 @@ const Home = () => {
 {/* States for Segment2: Game Discovery Grid */}
   // Mock Data for Games
   const gamesData = [
-    { id: 1, title: 'Valorant', genre: 'FPS', platform: 'PC', activePlayers: 14205},
-    { id: 2, title: 'Counter-Strike 2', genre: 'FPS', platform: 'PC', activePlayers: 28410 },
-    { id: 3, title: 'League of Legends', genre: 'MOBA', platform: 'PC', activePlayers: 45190},
-    { id: 4, title: 'Apex Legends', genre: 'FPS', platform: 'Multi', activePlayers: 8940},
-    { id: 5, title: 'Dota 2', genre: 'MOBA', platform: 'PC', activePlayers: 12450},
+    { id: 1, title: 'Valorant', code:"valorant",genre: 'FPS', platform: 'PC', activePlayers: 14205, bg:"https://cmsassets.rgpub.io/sanity/images/dsfx7636/news_live/d0db663bf28844dcbd744935cdd8c71083e0031c-5600x3150.jpg"},
+    { id: 2, title: 'Counter-Strike 2',code:"cs2", genre: 'FPS', platform: 'PC', activePlayers: 28410 ,bg:"https://gaming-cdn.com/images/products/13664/616x353/counter-strike-2-pc-game-steam-cover.jpg?v=1695885435"},
+    { id: 3, title: 'League of Legends',code:"lol", genre: 'MOBA', platform: 'PC', activePlayers: 45190,bg:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHaOlGCobI2KRXt3uJpJbHpHXDOTk99kpUsgReHsaXUmKoSI2PqscxdMA&s=10"},
+    { id: 4, title: 'Apex Legends',code:"apex", genre: 'FPS', platform: 'Multi', activePlayers: 8940,bg:"https://images.wallpapersden.com/image/download/apex-legends-4k-gaming-poster_bWlmbG6UmZqaraWkpJRobWllrWdma2U.jpg"},
+    { id: 5, title: 'Dota 2',code:"dota2", genre: 'MOBA', platform: 'PC', activePlayers: 12450,bg:"https://images.ctfassets.net/w5r1fvmogo3f/7A6kKEsRUe58qgDBYpwkbp/e71215961b1aeee923d4eb2cee2b79b1/dota-2-banner_75b7c97f4cdf4a6b9bf6240f4a3d41dd.jpg?fm=webp&q=90&fit=scale&w=1920"},
   ];
 
   // Filtering States
@@ -141,20 +141,25 @@ const Home = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
   const handleLogOut =async ()=>{
-    const response=confirm("Are you sure to Log out?")
-      if(response){
-      console.log(socket.connected)
-      socket.disconnect();
-      console.log(socket.connected);
-      const token = localStorage.getItem("jwt-auth-token");
-      localStorage.removeItem("jwt-auth-token");
+    const confirmed = window.confirm("Are you sure to Log out?");
 
-          const response = await apiFetch(`http://localhost:${API_PORT}/api/auth/log-out`, {
+    if (!confirmed) return;
+
+    if (socket?.connected) {
+        socket.disconnect();
+    }
+
+    try {
+        await fetch(`http://localhost:${API_PORT}/api/auth/log-out`, {
             method: "POST",
-            credentials: "include",
-            
-          });
-            navigate("/auth");}
+            credentials: "include"
+        });
+    } catch (err) {
+        console.error("Logout failed:", err);
+    } finally {
+        localStorage.removeItem("jwt-auth-token");
+        navigate("/auth");
+    }
   }
   
   // Prevent UI flashing or undefined crashes while checking user details
@@ -327,7 +332,7 @@ const Home = () => {
                   <GameCard
                     key={g.id}
                     game={g}
-                    onClick={() => setGame(g.title.toLowerCase())}
+                    onClick={() => {setGame(g.code.toLowerCase());window.scrollTo({ top: 0, behavior: 'smooth' });}}
                   />
                 ))
               ) : (

@@ -44,7 +44,7 @@ export default function USERLOGANDREG() {
 
     const data = await response.json();
     if (!response.ok) {
-      alert(data.message);
+      alert("Invalid email or password, "+data.message);
       return;
     }
     localStorage.setItem("jwt-auth-token",data.token);
